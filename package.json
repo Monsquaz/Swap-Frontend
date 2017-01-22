@@ -1,0 +1,38 @@
+{
+  "name": "swap-frontend",
+  "version": "1.0.0",
+  "description": "Monsquaz Swap Frontend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Monsquaz/Swap-Frontend.git"
+  },
+  "author": "Patrik Weibull",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Monsquaz/Swap-Frontend/issues"
+  },
+  "homepage": "https://github.com/Monsquaz/Swap-Frontend#readme",
+  "dependencies": {
+    "autoprefixer": "^6.7.0",
+    "gulp": "^3.9.1",
+    "gulp-autopolyfiller": "^1.2.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-csscomb": "^3.0.8",
+    "gulp-csso": "^2.0.0",
+    "gulp-myth": "^1.1.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-shorthand": "^1.1.0",
+    "gulp-uglify": "^2.0.0",
+    "gulp-uncss": "^1.0.6",
+    "gulp-watch": "^4.3.11",
+    "jquery": "^3.1.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "webpack": "^1.14.0"
+  }
+}
