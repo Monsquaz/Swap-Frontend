@@ -4,35 +4,40 @@
   "description": "Monsquaz Swap Frontend",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Monsquaz/Swap-Frontend.git"
-  },
-  "author": "Patrik Weibull",
+  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Monsquaz/Swap-Frontend/issues"
+  "babel": {
+    "presets": [
+      "env",
+      "react",
+      "stage-2"
+    ]
   },
-  "homepage": "https://github.com/Monsquaz/Swap-Frontend#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "vue-loader": "^15.2.6",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.3",
+    "webpack-dev-server": "^3.1.4"
+  },
   "dependencies": {
-    "autoprefixer": "^6.7.0",
-    "gulp": "^3.9.1",
-    "gulp-autopolyfiller": "^1.2.1",
-    "gulp-babel": "^6.1.2",
-    "gulp-concat": "^2.6.1",
-    "gulp-csscomb": "^3.0.8",
-    "gulp-csso": "^2.0.0",
-    "gulp-myth": "^1.1.0",
-    "gulp-sass": "^3.1.0",
-    "gulp-shorthand": "^1.1.0",
-    "gulp-uglify": "^2.0.0",
-    "gulp-uncss": "^1.0.6",
-    "gulp-watch": "^4.3.11",
-    "jquery": "^3.1.1",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2",
-    "webpack": "^1.14.0"
+    "apollo-boost": "^0.1.6",
+    "apollo-client": "^2.3.1",
+    "apollo-link-batch-http": "^1.2.2",
+    "apollo-link-http": "^1.5.4",
+    "apollo-link-ws": "^1.0.8",
+    "css-loader": "^1.0.0",
+    "graphql": "^0.13.2",
+    "node-sass": "^4.9.2",
+    "sass-loader": "^7.0.3",
+    "subscriptions-transport-ws": "^0.9.9",
+    "vue": "^2.5.16",
+    "vue-template-compiler": "^2.5.16"
   }
 }
