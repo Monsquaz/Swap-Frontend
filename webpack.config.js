@@ -1,4 +1,8 @@
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const webpack = require('webpack');
+const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const CssNano = require('cssnano');
+const WebpackBundleSizeAnalyzerPlugin = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin;
 
 module.exports = {
   entry: [
@@ -6,6 +10,11 @@ module.exports = {
   ],
   module: {
     rules: [
+      {
+        test: /\.(graphql|gql)$/,
+        exclude: /node_modules/,
+        loader: 'graphql-tag/loader'
+      },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
@@ -33,9 +42,10 @@ module.exports = {
           'css-loader',
           {
             loader: 'sass-loader',
+            /*
             options: {
               indentedSyntax: true
-            }
+            }*/
           }
         ]
       }
@@ -50,9 +60,11 @@ module.exports = {
     filename: 'bundle.js'
   },
   plugins: [
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
+    new WebpackBundleSizeAnalyzerPlugin('../../bundle-size-report.txt')
   ],
   devServer: {
+    historyApiFallback: true,
     contentBase: './dist',
     compress: true,
     port: 9000,

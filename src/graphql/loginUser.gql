@@ -1,0 +1,10 @@
+mutation LoginUser($username: String!, $password: String!) {
+  loginUser(params: {username: $username, password: $password}) {
+    user {
+      id
+      username
+      gravatar
+    },
+    authToken
+  }
+}

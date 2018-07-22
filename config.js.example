@@ -1,0 +1,7 @@
+module.exports = {
+  apiUri:  '',
+  baseUri: '',
+  reCaptcha: {
+    siteKey: ''
+  }
+};

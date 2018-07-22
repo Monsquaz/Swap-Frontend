@@ -1,0 +1,22 @@
+query Events {
+  events {
+    id
+    slug
+    name
+    currentRound {
+      id
+      index
+    }
+    numRounds
+    numParticipants
+    host {
+      id
+      slug
+      username
+      gravatar
+    }
+    areChangesVisible
+    isScheduleVisible
+    isPublic
+  }
+}
