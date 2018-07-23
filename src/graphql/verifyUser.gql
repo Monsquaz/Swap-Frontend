@@ -1,0 +1,6 @@
+mutation RegisterUser($id: ID!, $code: String!) {
+  verifyUser(params: { id: $id, code: $code }) {
+    code
+    message
+  }
+}

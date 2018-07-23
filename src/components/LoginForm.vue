@@ -8,8 +8,12 @@
         <ApolloMutation
           :mutation="require('../graphql/loginUser.gql')"
           :variables="{ username, password }"
+          :refetchQueries="onRefetch"
           @done="onDone">
           <template slot-scope="{ mutate, loading, error, gqlError }">
+            <div v-if="gqlError" class="notification is-danger">
+              {{ gqlError.message }}
+            </div>
             <form>
               <div class="field">
                 <label class="label">Username</label>
@@ -18,7 +22,8 @@
                     class="input"
                     type="text"
                     tabindex="1"
-                    v-bind:value="username"
+                    v-model="username"
+                    @keyup.enter="mutate()"
                     autocomplete="username"
                     placeholder="Username" />
                   <span class="icon is-small is-left">
@@ -35,7 +40,8 @@
                   <input
                     class="input"
                     type="password"
-                    v-bind:value="password"
+                    v-model="password"
+                    @keyup.enter="mutate()"
                     autocomplete="current-password"
                     tabindex="2"
                     placeholder="Password" />
@@ -46,9 +52,9 @@
               </div>
               <div class="field">
                 <p class="control">
-                  <button class="button">
+                  <a class="button" @click="mutate()">
                     Login
-                  </button>
+                  </a>
                 </p>
               </div>
             </form>
@@ -69,9 +75,13 @@
       password: ''
     }),
     methods: {
-      onDone: (result) => {
-        // TODO: Save auth token etc
-        console.warn('RESULT', result);
+      onDone: function({ data: { loginUser: { authToken } }}) {
+        localStorage.setItem('authToken', authToken);
+        this.$router.push({ path: '/' });
+      },
+      onRefetch: function({ data: { loginUser: { authToken } }}) {
+        localStorage.setItem('authToken', authToken);
+        return ['CurrentUser']
       }
     },
     metaInfo: () => ({

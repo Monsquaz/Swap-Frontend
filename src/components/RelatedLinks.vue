@@ -71,7 +71,17 @@
               href: 'https://www.instagram.com/monsquaz/',
               title: 'Monsquaz on Instagram',
               description: 'Will eventually contain images?'
-            }
+            },
+            {
+              href: 'irc://irc.esper.net:6667/monsquaz',
+              title: 'Monsquaz on IRC',
+              description: 'Come and chat with us through IRC'
+            },
+            {
+              href: 'https://discord.gg/qvKWjKv',
+              title: 'Monsquaz on Discord',
+              description: 'Come and chat with us through Discord'
+            },
           ]
         },
         {
@@ -128,6 +138,7 @@
   .link {
     font-weight: bold;
     font-size: 1.5em;
+    border-bottom: 1px dotted black;
   }
   .link-description {}
 </style>

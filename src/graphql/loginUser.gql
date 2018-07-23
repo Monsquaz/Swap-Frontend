@@ -3,8 +3,9 @@ mutation LoginUser($username: String!, $password: String!) {
     user {
       id
       username
-      gravatar
-    },
+      smallGravatar: gravatar(size: 40)
+      bigGravatar: gravatar
+    }
     authToken
   }
 }

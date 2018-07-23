@@ -3,7 +3,7 @@
     <nav class="navbar">
       <div class="navbar-brand">
         <router-link class="navbar-item home" to="/">
-          <img src="images/favicon-32x32.png" class="logo" /> &nbsp;
+          <img src="/images/favicon-32x32.png" class="logo" /> &nbsp;
           Monsquaz Swap
         </router-link>
         <div class="navbar-burger burger" v-on:click="isActive = !isActive">
@@ -25,11 +25,18 @@
           </div>
         </div>
         <ApolloQuery :query="require('./graphql/currentUser.gql')">
-          <template slot-scope="{ result: { data, loading } }">
+          <template slot-scope="{ query, result: { data, loading } }">
             <div class="navbar-end" v-if="data && !loading">
-              <router-link v-if="!data.currentUser" class="navbar-item" to="/login">Login</router-link>
-              <router-link v-if="!data.currentUser" class="navbar-item" to="/register">Register</router-link>
-              <a v-if="data.currentUser" class="navbar-item" v-on:click.stop="logout">Logout</a>
+              <template v-if="!data.currentUser">
+                <router-link class="navbar-item" to="/login">Login</router-link>
+                <router-link class="navbar-item" to="/register">Register</router-link>
+              </template>
+              <template v-else>
+                <img
+                  v-bind:alt="data.currentUser.username"
+                  v-bind:src="data.currentUser.smallGravatar" />
+                <a class="navbar-item" v-on:click.stop="logout(query)">Logout</a>
+              </template>
             </div>
           </template>
         </ApolloQuery>
@@ -54,6 +61,12 @@ module.exports = {
     isActive: false
   }),
   computed: {},
+  methods: {
+    logout: function(query) {
+      localStorage.removeItem('authToken');
+      query.refetch();
+    }
+  },
   metaInfo: {
     titleTemplate: '%s | Monsquaz Swap',
     meta: [

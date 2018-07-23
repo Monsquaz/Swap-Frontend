@@ -2,6 +2,7 @@
    currentUser {
      id
      username
-     gravatar
+     smallGravatar: gravatar(size: 40)
+     bigGravatar: gravatar
    }
  }

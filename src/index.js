@@ -50,11 +50,11 @@ const splitLink = split(
 );
 
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('token');
+  const authToken = localStorage.getItem('authToken');
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : "",
+      authorization: authToken ? `Bearer ${authToken}` : "",
     }
   }
 });
@@ -68,7 +68,7 @@ const apolloClient = new ApolloClient({
 Vue.use(VueApollo);
 
 const apolloProvider = new VueApollo({
-  defaultClient: apolloClient,
+  defaultClient: apolloClient
 })
 
 Vue.use(VueRouter);

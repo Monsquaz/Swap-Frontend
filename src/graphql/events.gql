@@ -1,8 +1,29 @@
-query Events {
-  events {
+query Events (
+  $isPublic: Boolean = null,
+  $isParticipating: Boolean = null,
+  $status: EventStatus = null,
+  $offset: Int = 0,
+  $limit: Int = 500,
+  $maxDescription: Int = null,
+  $hostUserId: Int = null
+) {
+  events(selection: {
+    offset: $offset,
+    limit: $limit,
+    sort: id,
+    descending: true,
+    filters: {
+      isPublic: $isPublic,
+      isParticipating: $isParticipating,
+      status: $status,
+      hostUserId: $hostUserId
+    }
+  }) {
     id
     slug
     name
+    status
+    description(maxLength: $maxDescription)
     currentRound {
       id
       index
@@ -17,6 +38,8 @@ query Events {
     }
     areChangesVisible
     isScheduleVisible
+    isParticipant
+    isAdministrator
     isPublic
   }
 }

@@ -1,0 +1,18 @@
+mutation UpdateEvent(
+  $id: ID!
+  $name: String!
+  $areChangesVisible: Boolean!
+  $isScheduleVisible: Boolean!
+  $isPublic: Boolean!
+) {
+  createEvent(params: {
+    id: $id
+    name: $name
+    areChangesVisible: $areChangesVisible
+    isScheduleVisible: $isScheduleVisible
+    isPublic: $isPublic
+  }) {
+    code
+    message
+  }
+}
