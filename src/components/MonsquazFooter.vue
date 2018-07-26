@@ -39,10 +39,10 @@
         <div class="column is-3 right">
           <ul>
             <li>
-              <router-link to="privacy-policy">Privacy policy</router-link>
+              <router-link to="/privacy-policy">Privacy policy</router-link>
             </li>
             <li>
-              <router-link to="disclaimer">Disclaimer</router-link>
+              <router-link to="/disclaimer">Disclaimer</router-link>
             </li>
           </ul>
         </div>

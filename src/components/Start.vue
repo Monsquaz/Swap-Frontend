@@ -16,22 +16,13 @@
           it's always the same person who would have worked on your story right before you. This is a big creativity issue,
           since the same person would have to interpret the same person's last work for all of the stories.</p>
           <p>Instead, we generate swapping schedules as random <a target="_blank" href="https://en.wikipedia.org/wiki/Latin_square">Latin Squares</a> in this fashion;</p>
-            <table class="table schedule">
-              <tr>
-                <td></td>
-                <th v-for="(_, index) in swapSchedule">Song {{ index + 1 }}</th>
-              </tr>
-              <tr v-for="(round, index) in swapSchedule">
-                <th>Round {{ index + 1 }}</th>
-                <td v-for="participant in round">{{ participant }}</td>
-              </tr>
-            </table>
+            <swap-schedule :schedule="swapSchedule" />
             <div class="sub-label">
               Example schedule.<br />
               Song {{ exampleSongIndex + 1 }} gets passed through
-              {{ swapSchedule.map(round => round[exampleSongIndex]).slice(0, -1).join(' &rarr; ') }}
+              {{ swapSchedule.map(round => round[exampleSongIndex].title).slice(0, -1).join(' &rarr; ') }}
                 and is finnished by
-                {{ swapSchedule[swapSchedule.length - 1][exampleSongIndex] }}
+                {{ swapSchedule[swapSchedule.length - 1][exampleSongIndex].title }}
             </div>
           <h3>Anonymous</h3>
           <p>To spice things up further, the schedule will be hidden from participants</p>
@@ -59,7 +50,9 @@
   let people = [ 'Alice', 'George', 'Eric', 'Fred', 'Matt', 'Monica'];
   let square = getRandomLatinSquare(people.length);
   let exampleSongIndex = Math.floor(Math.random() * people.length );
-  for (let x in square) for (let y in square) square[x][y] = people[square[x][y]];
+  for (let x in square) for (let y in square) square[x][y] = {
+    title: people[square[x][y]]
+  };
   module.exports = {
     name: 'start',
     data: () => ({
@@ -78,33 +71,12 @@
 </script>
 
 <style lang="sass" scoped>
-  .schedule {
-    margin-top: 10px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 10px;
-    width: 100%;
-    max-width: 700px;
-  }
   .sub-label {
     text-align: center;
     font-style: italic;
     font-size: 0.9em;
   }
-  th {
-    white-space: nowrap;
-  }
   .youtube {
     max-width: 100%;
-  }
-  @media screen and (max-width: 850px) {
-    .table {
-      td, th { padding: 5px; }
-    }
-  }
-  @media screen and (max-width: 500px) {
-    .table {
-      td, th { padding: 1px; }
-    }
   }
 </style>

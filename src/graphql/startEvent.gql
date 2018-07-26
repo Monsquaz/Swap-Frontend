@@ -1,0 +1,6 @@
+mutation StartEvent($id: ID!) {
+  startEvent(id: $id) {
+    code
+    message
+  }
+}

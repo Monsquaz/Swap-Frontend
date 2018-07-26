@@ -21,6 +21,9 @@
             <router-link class="navbar-link" to="/events">Events</router-link>
           </div>
           <div class="navbar-item">
+            <router-link class="navbar-link" to="/users">Users</router-link>
+          </div>
+          <div class="navbar-item">
             <router-link class="navbar-link" to="/related-links">Related links</router-link>
           </div>
         </div>
@@ -35,7 +38,7 @@
                 <img
                   v-bind:alt="data.currentUser.username"
                   v-bind:src="data.currentUser.smallGravatar" />
-                <a class="navbar-item" v-on:click.stop="logout(query)">Logout</a>
+                <a class="navbar-item" v-on:click.stop="logout()">Logout</a>
               </template>
             </div>
           </template>
@@ -62,9 +65,9 @@ module.exports = {
   }),
   computed: {},
   methods: {
-    logout: function(query) {
+    logout: function() {
       localStorage.removeItem('authToken');
-      query.refetch();
+      location.reload();
     }
   },
   metaInfo: {

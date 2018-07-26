@@ -1,0 +1,21 @@
+query Users (
+  $offset: Int = 0,
+  $limit: Int = 500,
+  $gravatarSize: Int = 40,
+  $sort: UsersSortField = id,
+  $descending: Boolean = false,
+  $filters: UsersFilter = {}
+) {
+  users(selection: {
+    offset: $offset,
+    limit: $limit,
+    sort: $sort,
+    descending: $descending,
+    filters: $filters
+  }) {
+    id
+    slug
+    username
+    gravatar(size: $gravatarSize)
+  }
+}

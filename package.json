@@ -4,7 +4,8 @@
   "description": "Monsquaz Swap Frontend",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --config ./webpack.config.js --mode development"
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development",
+    "build-fragments": "node fragmentTypeQuery.js"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +22,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
+    "node-fetch": "^2.2.0",
     "vue-loader": "^15.2.6",
     "webpack": "^4.8.3",
     "webpack-cli": "^2.1.5",
@@ -35,6 +37,7 @@
     "apollo-link-context": "^1.0.8",
     "apollo-link-http": "^1.5.4",
     "apollo-link-ws": "^1.0.8",
+    "axios": "^0.18.0",
     "bulma": "^0.7.1",
     "css-loader": "^1.0.0",
     "cssnano": "^4.0.3",
@@ -46,6 +49,7 @@
     "sass-loader": "^7.0.3",
     "slugify": "^1.3.0",
     "subscriptions-transport-ws": "^0.9.9",
+    "v-tooltip": "^2.0.0-rc.33",
     "vee-validate": "^2.1.0-beta.6",
     "vue": "^2.5.16",
     "vue-apollo": "^3.0.0-beta.19",
@@ -54,6 +58,7 @@
     "vue-meta": "^1.5.2",
     "vue-recaptcha": "^1.1.1",
     "vue-router": "^3.0.1",
+    "vue-sweetalert2": "^1.5.0",
     "vue-template-compiler": "^2.5.16",
     "webpack-bundle-size-analyzer": "^2.7.0"
   }

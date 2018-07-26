@@ -1,10 +1,44 @@
+fragment userParts on User {
+  id
+  slug
+  username
+  gravatar(size: $gravatarSize)
+}
+
+fragment roundsubmissionParts on Roundsubmission {
+  id
+  status
+  round {
+    id
+    index
+  }
+  participant {
+    ...userParts
+  }
+  song { id }
+  fileSeeded {
+    id
+    filename
+    downloadUrl
+  }
+  fileSubmitted {
+    id
+    filename
+    downloadUrl
+  }
+}
+
 query Events (
+  $details: Boolean = false,
+  $id: ID = null,
+  $slug: String = null,
   $isPublic: Boolean = null,
   $isParticipating: Boolean = null,
-  $status: EventStatus = null,
+  $status: [EventStatus!] = null,
   $offset: Int = 0,
   $limit: Int = 500,
   $maxDescription: Int = null,
+  $gravatarSize: Int = 40,
   $hostUserId: Int = null
 ) {
   events(selection: {
@@ -13,6 +47,8 @@ query Events (
     sort: id,
     descending: true,
     filters: {
+      id: $id,
+      slug: $slug,
       isPublic: $isPublic,
       isParticipating: $isParticipating,
       status: $status,
@@ -28,18 +64,32 @@ query Events (
       id
       index
     }
+    currentRoundsubmission {
+      ...roundsubmissionParts
+    }
     numRounds
     numParticipants
+    roundsubmissions @include(if: $details) {
+      ...roundsubmissionParts
+    }
+    participants @include(if: $details)  {
+      ...userParts
+    }
     host {
-      id
-      slug
-      username
-      gravatar
+      ...userParts
     }
     areChangesVisible
     isScheduleVisible
     isParticipant
     isAdministrator
     isPublic
+    ... on AdministeredEvent {
+      initialFile {
+        id
+        filename
+        sizeHuman
+        downloadUrl
+      }
+    }
   }
 }

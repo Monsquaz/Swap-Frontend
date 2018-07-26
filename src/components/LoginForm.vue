@@ -8,7 +8,6 @@
         <ApolloMutation
           :mutation="require('../graphql/loginUser.gql')"
           :variables="{ username, password }"
-          :refetchQueries="onRefetch"
           @done="onDone">
           <template slot-scope="{ mutate, loading, error, gqlError }">
             <div v-if="gqlError" class="notification is-danger">
@@ -78,10 +77,7 @@
       onDone: function({ data: { loginUser: { authToken } }}) {
         localStorage.setItem('authToken', authToken);
         this.$router.push({ path: '/' });
-      },
-      onRefetch: function({ data: { loginUser: { authToken } }}) {
-        localStorage.setItem('authToken', authToken);
-        return ['CurrentUser']
+        location.reload();
       }
     },
     metaInfo: () => ({

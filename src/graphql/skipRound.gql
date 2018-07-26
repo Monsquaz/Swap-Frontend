@@ -1,0 +1,12 @@
+mutation SkipRound(
+  $roundsubmissionId: ID!
+  $userId: ID = null
+) {
+  skipRound(params: {
+    roundsubmissionId: $roundsubmissionId
+    userId: $userId
+  }) {
+    code
+    message
+  }
+}

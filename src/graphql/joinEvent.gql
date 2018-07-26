@@ -1,0 +1,6 @@
+mutation JoinEvent($id: ID!) {
+  joinEvent(id: $id) {
+    code
+    message
+  }
+}

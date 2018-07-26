@@ -3,6 +3,8 @@ module.exports = [
     component: () => import(/* webpackChunkName: "start" */ './components/Start.vue') },
   { path: '/events',
     component: () => import(/* webpackChunkName: "events-page" */ './components/EventsPage.vue') },
+  { path: '/events/:slug',
+    component: () => import(/* webpackChunkName: "event-page" */ './components/EventPage.vue') },
   { path: '/events/:id/edit',
     component: () => import(/* webpackChunkName: "edit-event" */ './components/EditEvent.vue') },
   { path: '/create-event',
@@ -20,7 +22,7 @@ module.exports = [
   { path: '/forgot-password',
     component: () => import(/* webpackChunkName: "forgot-password-form" */ './components/ForgotPasswordForm.vue') },
   { path: '/users',
-    component: () => import(/* webpackChunkName: "users-list" */ './components/UsersList.vue') },
+    component: () => import(/* webpackChunkName: "users-page" */ './components/UsersPage.vue') },
   { path: '/users/:slug',
     component: () => import(/* webpackChunkName: "user" */ './components/User.vue') },
   { path: '/users/:id/activation/:code',
@@ -31,4 +33,6 @@ module.exports = [
     component: () => import(/* webpackChunkName: "privacy-policy" */ './components/PrivacyPolicy.vue') },
   { path: '/related-links',
     component: () => import(/* webpackChunkName: "related-links" */ './components/RelatedLinks.vue') },
+  { path: "*",
+    component: () => import(/* webpackChunkName: "not-found" */ './components/NotFound.vue') }
 ];

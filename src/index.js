@@ -1,5 +1,6 @@
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
+import { IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
 import { gql } from 'apollo-boost';
 import { split } from 'apollo-link';
 import { setContext } from 'apollo-link-context';
@@ -13,12 +14,17 @@ import VueApollo from 'vue-apollo'
 import VueRouter from 'vue-router';
 import Meta from 'vue-meta';
 import VeeValidate from 'vee-validate';
+import VTooltip from 'v-tooltip';
+import VueSweetalert2 from 'vue-sweetalert2';
 import routes from './routes';
 import Icon from 'vue-awesome/components/Icon.vue'
 import config from '../config';
+import introspectionQueryResultData from '../fragmentTypes.json';
 
 Vue.use(Meta);
 Vue.use(VeeValidate);
+Vue.use(VTooltip);
+Vue.use(VueSweetalert2);
 
 Vue.component('icon', Icon);
 
@@ -30,6 +36,12 @@ Vue.component('monsquaz-footer', () => import(
 ));
 Vue.component('hero', () => import(
   /* webpackChunkName: "hero" */ './components/Hero.vue'
+));
+Vue.component('swap-schedule', () => import(
+  /* webpackChunkName: "swap-schedule" */ './components/SwapSchedule.vue'
+));
+Vue.component('paginator', () => import(
+  /* webpackChunkName: "paginator" */ './components/Paginator.vue'
 ));
 
 const httpLink = new BatchHttpLink({ uri: config.apiUri });
@@ -54,14 +66,21 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
+      'X-GraphQL-Deduplicate': true,
       authorization: authToken ? `Bearer ${authToken}` : "",
     }
   }
 });
 
+const fragmentMatcher = new IntrospectionFragmentMatcher({
+  introspectionQueryResultData
+});
+
 const apolloClient = new ApolloClient({
   link: authLink.concat(splitLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    fragmentMatcher
+  }),
   batchInterval: 10
 });
 
