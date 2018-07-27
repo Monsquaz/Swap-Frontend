@@ -1,0 +1,6 @@
+fragment fileParts on file {
+  id
+  filename
+  sizeHuman
+  downloadUrl
+}

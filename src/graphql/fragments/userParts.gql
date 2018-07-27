@@ -1,0 +1,6 @@
+ fragment userParts on User {
+  id
+  slug
+  username
+  gravatar(size: $gravatarSize)
+}

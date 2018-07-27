@@ -1,0 +1,22 @@
+fragment roundsubmissionParts on Roundsubmission {
+  id
+  status
+  round {
+    id
+    index
+  }
+  participant {
+    ...userParts
+  }
+  song { id }
+  fileSeeded {
+    id
+    filename
+    downloadUrl
+  }
+  fileSubmitted {
+    id
+    filename
+    downloadUrl
+  }
+}

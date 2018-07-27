@@ -1,0 +1,6 @@
+mutation NextEventRound ($id: ID!) {
+  nextEventRound(id: $id) {
+    code
+    message
+  }
+}

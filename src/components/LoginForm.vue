@@ -76,8 +76,7 @@
     methods: {
       onDone: function({ data: { loginUser: { authToken } }}) {
         localStorage.setItem('authToken', authToken);
-        this.$router.push({ path: '/' });
-        location.reload();
+        this.$router.push({ path: '/' }, () => { location.reload(); });
       }
     },
     metaInfo: () => ({

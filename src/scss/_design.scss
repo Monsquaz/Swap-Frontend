@@ -58,9 +58,17 @@ p {
 .tooltip {
   opacity: 0.99;
   z-index: 5;
-  margin: 15px;
+  margin: 40px;
   color: white;
   border-radius: 5px;
   background-color: black;
   padding: 5px;
+}
+.table {
+  width: 100%;
+  th, td {
+    padding: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 }

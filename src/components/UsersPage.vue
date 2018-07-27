@@ -18,7 +18,7 @@
         :headers="[
           {field: 'id', title: 'Id'},
           {field: 'username', title: 'Username'},
-          {field: 'gravatar', title: 'Image', f: img}
+          {field: img, title: 'Image'}
         ]"
         :linker="linker"
         :sort="'id'"
@@ -36,11 +36,11 @@
       query: require('../graphql/users.gql')
     }),
     methods: {
+      img: function (user) {console.warn('KUK?')
+        return `<img src="${user.gravatar}" />`
+      },
       linker: function (user) {
         return `/users/${user.slug}`;
-      },
-      img: function(data) {
-        return `<img src="${data}" />`;
       }
     },
     metaInfo: {

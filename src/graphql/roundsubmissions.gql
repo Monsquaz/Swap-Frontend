@@ -1,0 +1,45 @@
+#import "./fragments/userParts.gql"
+#import "./fragments/fileParts.gql"
+
+query Roundsubmissions (
+  $offset: Int = 0,
+  $limit: Int = 500,
+  $sort: RoundsubmissionsSortField = id,
+  $descending: Boolean = false,
+  $filters: RoundsubmissionsFilter = {}
+) {
+  users(selection: {
+    offset: $offset,
+    limit: $limit,
+    sort: $sort,
+    descending: $descending,
+    filters: $filters
+  }) {
+    id
+    status
+    round {
+      id
+      index
+    }
+    participant {
+      ...userParts
+    }
+    originalParticipant {
+      ...userParts
+    }
+    song {
+      id
+    }
+    fileSeeded {
+      ...fileParts
+    }
+    fileSubmitted {
+      ...fileParts
+    }
+    event {
+      id
+      slug
+      name
+    }
+  }
+}

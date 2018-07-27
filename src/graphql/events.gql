@@ -1,59 +1,22 @@
-fragment userParts on User {
-  id
-  slug
-  username
-  gravatar(size: $gravatarSize)
-}
-
-fragment roundsubmissionParts on Roundsubmission {
-  id
-  status
-  round {
-    id
-    index
-  }
-  participant {
-    ...userParts
-  }
-  song { id }
-  fileSeeded {
-    id
-    filename
-    downloadUrl
-  }
-  fileSubmitted {
-    id
-    filename
-    downloadUrl
-  }
-}
+#import "./fragments/userParts.gql"
+#import "./fragments/roundsubmissionParts.gql"
 
 query Events (
   $details: Boolean = false,
-  $id: ID = null,
-  $slug: String = null,
-  $isPublic: Boolean = null,
-  $isParticipating: Boolean = null,
-  $status: [EventStatus!] = null,
   $offset: Int = 0,
   $limit: Int = 500,
   $maxDescription: Int = null,
   $gravatarSize: Int = 40,
-  $hostUserId: Int = null
+  $filters: EventsFilter,
+  $sort: EventsSortField = id,
+  $descending: Boolean = false
 ) {
   events(selection: {
     offset: $offset,
     limit: $limit,
-    sort: id,
-    descending: true,
-    filters: {
-      id: $id,
-      slug: $slug,
-      isPublic: $isPublic,
-      isParticipating: $isParticipating,
-      status: $status,
-      hostUserId: $hostUserId
-    }
+    sort: $sort,
+    descending: $descending,
+    filters: $filters
   }) {
     id
     slug
