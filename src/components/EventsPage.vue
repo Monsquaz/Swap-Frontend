@@ -3,7 +3,7 @@
     <hero
       title="Events"
       subtitle="Find an event to take part in"></hero>
-    <div class="columns is-mobile is-centered">
+    <div class="columns is-centered">
       <section class="content-box column is-three-quarters">
         <div>
           <router-link v-if="currentUser" class="button" :to="{path: '/create-event'}">
@@ -17,14 +17,53 @@
             :query="eventsQuery"
             :show-headers="true"
             :headers="[
-              {field: 'name', title: 'Name'},
-              {field: 'status', title: 'Status'},
-              {field: host, title: 'Host'},
-              {field: 'numParticipants', title: 'Participants'},
-              {field: rounds, title: 'Rounds'},
-              {field: 'isPublic', title: 'Public'},
-              {field: 'isScheduleVisible', title: 'Visible schedule'},
-              {field: 'areChangesVisible', title: 'Visible changes'}
+              {
+                field: 'name',
+                title: 'Name',
+                sortable: true
+              },
+              {
+                field: 'status',
+                title: 'Status',
+                sortable: true
+              },
+              {
+                field: host,
+                title: 'Host',
+                sortable: true,
+                sortField: 'hostUserId',
+                tooltip: `The username of the user hosting the event`,
+              },
+              {
+                field: 'numParticipants',
+                title: 'Participants',
+                sortable: true,
+                tooltip: 'The number of currently signed up participants'
+              },
+              {
+                field: rounds,
+                title: 'Rounds',
+                sortable: true,
+                tooltip: 'Number of rounds in the event and (possibly) the current round'
+              },
+              {
+                field: 'isPublic',
+                title: 'Public',
+                sortable: true,
+                tooltip: 'Whether the event is available for everyone'
+              },
+              {
+                field: 'isScheduleVisible',
+                title: 'Visible schedule',
+                sortable: true,
+                tooltip: 'Whether the swap schedule is visible for everyone who can see the event'
+              },
+              {
+                field: 'areChangesVisible',
+                title: 'Visible changes',
+                sortable: true,
+                tooltip: 'Whether uploaded files should be public everyone who can see the event'
+              }
             ]"
             :linker="linker"
             :sort="'status'"

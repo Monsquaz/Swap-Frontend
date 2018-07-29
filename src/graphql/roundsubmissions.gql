@@ -6,9 +6,10 @@ query Roundsubmissions (
   $limit: Int = 500,
   $sort: RoundsubmissionsSortField = id,
   $descending: Boolean = false,
+  $gravatarSize: Int = 40,
   $filters: RoundsubmissionsFilter = {}
 ) {
-  users(selection: {
+  roundsubmissions(selection: {
     offset: $offset,
     limit: $limit,
     sort: $sort,
@@ -16,30 +17,23 @@ query Roundsubmissions (
     filters: $filters
   }) {
     id
-    status
-    round {
-      id
-      index
-    }
-    participant {
-      ...userParts
-    }
-    originalParticipant {
-      ...userParts
-    }
-    song {
-      id
-    }
-    fileSeeded {
-      ...fileParts
-    }
-    fileSubmitted {
-      ...fileParts
-    }
     event {
       id
-      slug
+      status
       name
+      slug
+      isPublic
+      isParticipant
+      isScheduleVisible
+      areChangesVisible
+      isAdministrator
     }
+    round { id index }
+    song { id index }
+    status
+    participant { ...userParts }
+    originalParticipant { ...userParts }
+    fileSeeded { ...fileParts }
+    fileSubmitted { ...fileParts }
   }
 }

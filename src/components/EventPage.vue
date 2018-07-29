@@ -3,15 +3,32 @@
     class="events"
     :query="require('../graphql/events.gql')"
     :variables="variables"
-    @result="onResult">
+    @result="onResult"
+    @error="onError">
     <template slot-scope="{ query, result: { data, loading } }">
       <template v-if="data && !loading">
         <div>
           <hero
             :title="`Event: ${data.events[0].name}`"
             :subtitle="`Hosted by ${data.events[0].host.username}`"></hero>
-          <div class="columns is-mobile is-centered">
-            <section class="content-box column is-two-thirds">
+          <div class="columns is-centered">
+            <section :class="{
+              'content-box': true,
+              'column': true,
+              'is-two-thirds': !expanded,
+              'is-full': expanded
+              }">
+              <div
+                :class="{
+                  expander: true,
+                  active: expanded
+                }"
+                @click="sizeToggle">
+                <icon :name="expanded ? 'compress' : 'expand'" scale="1"></icon>
+              </div>
+              <div class="notification is-danger" v-if="error">
+                {{ error.message }}
+              </div>
               <div class="columns">
                 <div class="column is-half event-details">
                   <div class="card-title">Event details</div>
@@ -67,10 +84,8 @@
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
-                      'is-full': data.events[0].isParticipant &&
-                                 !data.events[0].isAdministrator,
-                      'is-half': data.events[0].isParticipant &&
-                                 data.events[0].isAdministrator
+                      'is-full': !data.events[0].isAdministrator,
+                      'is-half': data.events[0].isAdministrator
                     }">
                     <div class="card-title">Participation</div>
                     <div v-if="!data.events[0].currentRoundsubmission && data.events[0].isParticipant">
@@ -82,7 +97,9 @@
                       </template>
                       <template v-else-if="data.events[0].status == 'Started'">
                         <table class="table">
-                          <tr><th>Round</th><td>{{ data.events[0].currentRound.index + 1 }}</td></tr>
+                          <tr v-if="data.events[0].currentRound">
+                            <th>Round</th><td>{{ data.events[0].currentRound.index + 1 }}</td>
+                          </tr>
                           <tr><th>Status</th><td>{{ data.events[0].currentRoundsubmission.status }}</td></tr>
                           <tr
                             v-if="data.events[0].currentRoundsubmission.fileSubmitted">
@@ -110,7 +127,7 @@
                               class="file button is-primary"
                               v-if="
                                 currentUser &&
-                                ['Started','Submitted','FillInAquired']
+                                ['Started','Submitted','FillInAquired','Refuted']
                                 .includes(data.events[0].currentRoundsubmission.status)"
                               v-tooltip="'Submit your file. Note: You may re-upload until the round has ended.'">
                               <label class="file-label" style="margin-top: -5px;">
@@ -136,14 +153,15 @@
                             </div>
                             <ApolloMutation
                                 v-if="currentUser &&
-                                ['Started','FillInAquired']
+                                ['Started','FillInAquired','Refuted']
                                 .includes(data.events[0].currentRoundsubmission.status)"
                                 :mutation="require('../graphql/skipRound.gql')"
                                 :variables="{
                                   roundsubmissionId: data.events[0].currentRoundsubmission.id,
                                   userId: currentUser.id
                                 }"
-                                :refetchQueries="refetchOnJoin">
+                                :refetchQueries="refetchOnJoin"
+                                @error="onError">
                               <template slot-scope="{ mutate, loading, error, gqlError }">
                                 <a
                                   href="#"
@@ -172,7 +190,8 @@
                             v-if="currentUser"
                             :mutation="require('../graphql/joinEvent.gql')"
                             :variables="{ id: data.events[0].id }"
-                            :refetchQueries="refetchOnJoin">
+                            :refetchQueries="refetchOnJoin"
+                            @error="onError">
                           <template slot-scope="{ mutate, loading, error, gqlError }">
                             <a
                               href="#"
@@ -191,15 +210,12 @@
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
-                      'is-full': !data.events[0].isParticipant &&
-                                 data.events[0].isAdministrator,
-                      'is-half': data.events[0].isParticipant &&
-                                 data.events[0].isAdministrator
+                      'is-half': true
                     }">
                     <div class="card-title">Administration</div>
                     <div>
                       <table class="table" v-if="data.events[0].status == 'Started'">
-                        <tr><th>Round</th><td>{{ data.events[0].currentRound.index + 1 }}</td></tr>
+                        <tr v-if="data.events[0].currentRound"><th>Round</th><td>{{ data.events[0].currentRound.index + 1 }}</td></tr>
                         <tr>
                           <th>Status</th>
                           <td>
@@ -217,7 +233,8 @@
                         <ApolloMutation
                             :mutation="require('../graphql/nextEventRound.gql')"
                             :variables="{ id: data.events[0].id }"
-                            :refetchQueries="refetchOnNextRound">
+                            :refetchQueries="refetchOnNextRound"
+                            @error="onError">
                           <template slot-scope="{ mutate, loading, error, gqlError }">
                               <a class="button is-primary"
                               @click.prevent="nextEventRound(data.events[0], mutate)"
@@ -258,11 +275,13 @@
                           <ApolloMutation
                               :mutation="require('../graphql/startEvent.gql')"
                               :variables="{ id: data.events[0].id }"
-                              :refetchQueries="refetchOnJoin">
+                              :refetchQueries="refetchOnJoin"
+                              @error="onError">
                             <template slot-scope="{ mutate, loading, error, gqlError }">
                                 <a class="button is-primary"
                                 @click.prevent="startEvent(data.events[0], mutate)"
-                                v-if="data.events[0].status == 'Planned'"
+                                v-if="data.events[0].status == 'Planned' &&
+                                      data.events[0].numParticipants > 0"
                                 v-tooltip="'This starts the event and generates the swap schedule. There\'s no turning back from when this is done.'">
                                   Start first round</a>
                             </template>
@@ -282,6 +301,16 @@
                 <div class="card-title">Description</div>
                 <div class="" v-html="formatText(data.events[0].description)" />
               </div>
+              <div
+                v-if="data.events[0].status == 'Completed' ||
+                      data.events[0].areChangesVisible"
+                class="comments">
+                <div class="card-title">Comments</div>
+                <vue-disqus
+                  shortname="monsquaz-swap"
+                  :identifier="`event-${data.events[0].id}`"
+                  :url="currentUrl" />
+              </div>
             </section>
           </div>
         </div>
@@ -291,6 +320,8 @@
 </template>
 
 <script>
+  import 'vue-awesome/icons/expand';
+  import 'vue-awesome/icons/compress';
   import axios from 'axios';
   import config from '../../config';
   let uploader = function(urlFormatter, swalParams) {
@@ -305,15 +336,21 @@
         });
       const authToken = localStorage.getItem('authToken');
       let url = urlFormatter(urlParam);
-      console.warn('URL!', url);
       axios.post(
         url, formData, {
           headers: {
             authorization: authToken ? `Bearer ${authToken}` : ""
           }
         }
-      ).then(function(){
-        if (swalParams) self.$swal(...swalParams);
+      ).then(function({ data }) {console.warn('res', );
+        let params = [ ...swalParams ];
+        if (typeof data != 'object') {
+          params = ['Error', data, 'error'];
+        }
+        else if (data.code != 200) {
+          params = ['Error', data.message, 'error'];
+        }
+        self.$swal(...params);
         if (query) query.refetch();
       });
     }
@@ -323,9 +360,14 @@
     props: {},
     data: () => ({
       usersQuery: require('../graphql/users.gql'),
-      apiUrl: 'http://monsquaz.org:4000'
+      apiUrl: 'http://monsquaz.org:4000',
+      error: null,
+      expanded: false
     }),
     computed: {
+      currentUrl: function() {
+        return window.location.href.split('?')[0];
+      },
       variables: function() {
         return {
           details: true,
@@ -341,6 +383,9 @@
       }
     },
     methods: {
+      sizeToggle: function() {
+        this.expanded = !this.expanded;
+      },
       downloadWithAuth: function(url, filename) {
         let xhr = new XMLHttpRequest()
         xhr.open('GET', url, true);
@@ -392,9 +437,11 @@
       formatText: function(text) {
         return text.replace(/(?:\r\n|\r|\n)/g, '<br />');
       },
-      onResult: function(res) {
-        /* TODO: Compute stuff commonly used in template,
-        so methods don't have to be called all the time */
+      onError: function(err) {
+        this.error = err;
+      },
+      onResult: function({ data }) {
+        // TODO?
       },
       refetchOnJoin: function() {
         return ['Events'];
@@ -517,6 +564,25 @@
 </script>
 
 <style lang="sass" scoped>
+  .expander {
+    float: right;
+    position: relative;
+    top: -20px;
+    right: -15px;
+    cursor: pointer;
+    &.active {
+      top: -20px;
+      right: 10px;
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .expander {
+      display: none;
+    }
+  }
+  .notification {
+    padding: 5px;
+  }
   .participation-join {
     text-align: center;
     padding: 15px;
@@ -553,5 +619,8 @@
       margin-top: 10px;
       margin-right: 10px;
     }
+  }
+  .comments {
+    margin-top: 25px;
   }
 </style>

@@ -16,6 +16,8 @@ import Meta from 'vue-meta';
 import VeeValidate from 'vee-validate';
 import VTooltip from 'v-tooltip';
 import VueSweetalert2 from 'vue-sweetalert2';
+import VueDisqus from 'vue-disqus'
+
 import routes from './routes';
 import Icon from 'vue-awesome/components/Icon.vue'
 import config from '../config';
@@ -25,6 +27,7 @@ Vue.use(Meta);
 Vue.use(VeeValidate);
 Vue.use(VTooltip);
 Vue.use(VueSweetalert2);
+Vue.use(VueDisqus)
 
 Vue.component('icon', Icon);
 

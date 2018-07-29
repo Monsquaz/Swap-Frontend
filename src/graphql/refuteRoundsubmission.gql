@@ -1,0 +1,6 @@
+mutation RefuteRoundsubmission($id: ID!) {
+  refuteRoundsubmission(id: $id) {
+    code
+    message
+  }
+}

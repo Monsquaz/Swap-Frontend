@@ -1,4 +1,4 @@
-fragment fileParts on file {
+fragment fileParts on File {
   id
   filename
   sizeHuman
