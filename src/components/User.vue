@@ -14,6 +14,14 @@
           :title="`User: ${data.users[0].username}`"></hero>
         <div class="columns is-centered">
           <section class="content-box column is-two-thirds">
+            <table class="table">
+              <tr><th>Id</th><td>{{ data.users[0].id }}</td></tr>
+              <tr><th>Username</th><td>{{ data.users[0].username }}</td></tr>
+              <tr><th>Gravatar</th><td><img :src="data.users[0].gravatar" /></td></tr>
+              <tr v-if="data.users[0].firstname"><th>Firstname</th><td>{{ data.users[0].firstname }}</td></tr>
+              <tr v-if="data.users[0].lastname"><th>Lastname</th><td>{{ data.users[0].lastname }}</td></tr>
+              <tr v-if="data.users[0].email"><th>Email</th><td>{{ data.users[0].email }}</td></tr>
+            </table>
           </section>
         </div>
       </template>

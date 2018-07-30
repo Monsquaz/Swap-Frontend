@@ -1,24 +1,26 @@
  <template>
    <div>
-     <table class="table schedule">
-       <tr>
-         <td></td>
-         <th v-for="(_, index) in schedule">Song {{ index + 1 }}</th>
-       </tr>
-       <tr v-for="(round, index) in schedule">
-         <th>Round {{ index + 1 }}</th>
-         <td v-for="submission in round">
-           <div :class="submission.class">
-             <router-link v-if="'id' in submission" :to="`/roundsubmissions/${submission.id}`">
-               &nbsp;{{ submission.title }}
-             </router-link>
-             <template v-else>
-               &nbsp;{{ submission.title }}
-             </template>
-           </div>
-         </td>
-       </tr>
-     </table>
+     <div class="table-wrapper">
+       <table class="table schedule">
+         <tr>
+           <td></td>
+           <th v-for="(_, index) in schedule">Song {{ index + 1 }}</th>
+         </tr>
+         <tr v-for="(round, index) in schedule">
+           <th>Round {{ index + 1 }}</th>
+           <td v-for="submission in round">
+             <div :class="submission.class">
+               <router-link v-if="'id' in submission" :to="`/roundsubmissions/${submission.id}`">
+                 &nbsp;{{ submission.title }}
+               </router-link>
+               <template v-else>
+                 &nbsp;{{ submission.title }}
+               </template>
+             </div>
+           </td>
+         </tr>
+       </table>
+     </div>
      <div class="colorguide" v-if="colorguide">
        <div class="color" v-for="[ status, tooltip ] in colors">
          <div v-tooltip="tooltip" :class="status.toLowerCase()">{{ status }}</div>
@@ -55,6 +57,9 @@
   .refuted          { color: #ffffff; a { color: #ffffff; } background-color: #990066; }
   .completed        { color: #ffffff; a { color: #ffffff; } background-color: #339933; }
   .skipped          { color: #ffffff; a { color: #ffffff; } background-color: #993333; }
+  .table-wrapper {
+    overflow-x: auto;
+  }
   .schedule, .colorguide {
     margin-top: 10px;
     margin-left: auto;

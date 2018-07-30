@@ -54,7 +54,7 @@
                       type="text"
                       name="username"
                       v-model="username"
-                      v-validate="{ alpha: true, min: 3 }"
+                      v-validate="{ alpha_num: true, min: 3 }"
                       tabindex="2"
                       autocomplete="username"
                       placeholder="Username" />

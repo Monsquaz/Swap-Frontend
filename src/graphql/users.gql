@@ -17,5 +17,11 @@ query Users (
     slug
     username
     gravatar(size: $gravatarSize)
+    ... on AdministeredUser {
+      firstname lastname email
+    }
+    ... on OwnedUser {
+      firstname lastname email
+    }
   }
 }

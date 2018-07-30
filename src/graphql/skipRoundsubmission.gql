@@ -1,0 +1,6 @@
+mutation SkipRoundsubmission($id: ID!) {
+  skipRoundsubmission(id: $id) {
+    code
+    message
+  }
+}

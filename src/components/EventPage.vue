@@ -1,7 +1,7 @@
 <template>
   <ApolloQuery
     class="events"
-    :query="require('../graphql/events.gql')"
+    :query="eventsQuery"
     :variables="variables"
     @result="onResult"
     @error="onError">
@@ -9,8 +9,8 @@
       <template v-if="data && !loading">
         <div>
           <hero
-            :title="`Event: ${data.events[0].name}`"
-            :subtitle="`Hosted by ${data.events[0].host.username}`"></hero>
+            :title="`Event: ${event.name}`"
+            :subtitle="`Hosted by ${event.host.username}`"></hero>
           <div class="columns is-centered">
             <section :class="{
               'content-box': true,
@@ -33,33 +33,33 @@
                 <div class="column is-half event-details">
                   <div class="card-title">Event details</div>
                   <table class="table">
-                    <tr><th>Status</th><td>{{ data.events[0].status }}</td></tr>
-                    <tr><th>Number of participants</th><td>{{ data.events[0].numParticipants }}</td></tr>
-                    <tr v-if="data.events[0].numRounds">
+                    <tr><th>Status</th><td>{{ event.status }}</td></tr>
+                    <tr><th>Number of participants</th><td>{{ event.numParticipants }}</td></tr>
+                    <tr v-if="event.numRounds">
                       <th>Number of rounds</th>
-                      <td>{{ data.events[0].numRounds }}</td>
+                      <td>{{ event.numRounds }}</td>
                     </tr>
-                    <tr v-if="data.events[0].currentRound">
+                    <tr v-if="event.currentRound">
                       <th>Current round</th>
-                      <td>{{ data.events[0].currentRound.index + 1 }}</td>
+                      <td>{{ event.currentRound.index + 1 }}</td>
                     </tr>
-                    <tr><th>Public event</th><td>{{ data.events[0].isPublic ? 'Yes': 'No' }}</td></tr>
-                    <tr><th>Public schedule</th><td>{{ data.events[0].isScheduleVisible ? 'Yes': 'No' }}</td></tr>
-                    <tr><th>Public changes</th><td>{{ data.events[0].areChangesVisible ? 'Yes': 'No' }}</td></tr>
-                    <tr v-if="data.events[0].initialFile">
+                    <tr><th>Public event</th><td>{{ event.isPublic ? 'Yes': 'No' }}</td></tr>
+                    <tr><th>Public schedule</th><td>{{ event.isScheduleVisible ? 'Yes': 'No' }}</td></tr>
+                    <tr><th>Public changes</th><td>{{ event.areChangesVisible ? 'Yes': 'No' }}</td></tr>
+                    <tr v-if="event.initialFile">
                       <th>Initial file</th>
                       <td>
                         <a @click.prevent="downloadWithAuth(
-                          `${apiUrl}${data.events[0].initialFile.downloadUrl}`,
-                          data.events[0].initialFile.filename)">
-                          {{ data.events[0].initialFile.filename }}
+                          `${apiUrl}${event.initialFile.downloadUrl}`,
+                          event.initialFile.filename)">
+                          {{ event.initialFile.filename }}
                       </a></td>
                     </tr>
                   </table>
                 </div>
                 <div class="event-participants column is-half">
                   <div class="card-title">Participants</div>
-                  <template v-if="data.events[0].numParticipants == 0">
+                  <template v-if="event.numParticipants == 0">
                     None, yet
                   </template>
                   <template v-else>
@@ -70,57 +70,60 @@
                     :headers="[
                       {field: 'username', title: 'Username'}
                     ]"
-                    :linker="linker"
+                    :linker="userLinker"
                     :sort="'id'"
                     :descending="false"
-                    :filters="{ id: data.events[0].participants.map( ({id}) => id ) }"
+                    :filters="{ id: event.participants.map( ({id}) => id ) }"
                     ></paginator>
                   </template>
                 </div>
               </div>
                 <div class="columns">
                   <div
-                    v-if="data.events[0].status != 'Completed'"
+                    v-if="event.status != 'Completed'"
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
-                      'is-full': !data.events[0].isAdministrator,
-                      'is-half': data.events[0].isAdministrator
+                      'is-full': !event.isAdministrator,
+                      'is-half': event.isAdministrator
                     }">
                     <div class="card-title">Participation</div>
-                    <div v-if="!data.events[0].currentRoundsubmission && data.events[0].isParticipant">
+                    <div v-if="!event.currentRoundsubmission && event.isParticipant">
                       Not currently in a round
                     </div>
-                    <div v-if="data.events[0].currentRoundsubmission && data.events[0].isParticipant">
-                      <template v-if="data.events[0].status == 'Planned'">
+                    <div v-if="event.currentRoundsubmission && event.isParticipant">
+                      <template v-if="event.status == 'Planned'">
                         You're signed up as an ordinary participant.
                       </template>
-                      <template v-else-if="data.events[0].status == 'Started'">
+                      <template v-else-if="event.status == 'Started'">
                         <table class="table">
-                          <tr v-if="data.events[0].currentRound">
-                            <th>Round</th><td>{{ data.events[0].currentRound.index + 1 }}</td>
+                          <tr v-if="event.currentRound">
+                            <th>Round</th><td>{{ event.currentRound.index + 1 }}</td>
                           </tr>
-                          <tr><th>Status</th><td>{{ data.events[0].currentRoundsubmission.status }}</td></tr>
+                          <tr><th>Status</th><td>{{ event.currentRoundsubmission.status }}</td></tr>
                           <tr
-                            v-if="data.events[0].currentRoundsubmission.fileSubmitted">
+                            v-if="event.currentRoundsubmission.fileSubmitted">
                             <th>Submitted file</th>
                             <td>
                               <a @click.prevent="downloadWithAuth(
-                                `${apiUrl}${data.events[0].currentRoundsubmission.fileSubmitted.downloadUrl}`,
-                                data.events[0].currentRoundsubmission.fileSubmitted.filename)">
-                                {{ data.events[0].currentRoundsubmission.fileSubmitted.filename }}
+                                `${apiUrl}${event.currentRoundsubmission.fileSubmitted.downloadUrl}`,
+                                event.currentRoundsubmission.fileSubmitted.filename)">
+                                {{ event.currentRoundsubmission.fileSubmitted.filename }}
                             </a></td>
                           </tr>
                         </table>
                         <div class="roundsubmission-actions">
                           <a class="button is-info"
-                            v-if="data.events[0].currentRoundsubmission &&
-                                  data.events[0].currentRoundsubmission.fileSeeded"
+                            v-if="event.currentRoundsubmission &&
+                                  event.currentRoundsubmission.fileSeeded"
                             @click.prevent="downloadWithAuth(
-                              `${apiUrl}${data.events[0].currentRoundsubmission.fileSeeded.downloadUrl}`,
-                              data.events[0].currentRoundsubmission.fileSeeded.filename
+                              `${apiUrl}${event.currentRoundsubmission.fileSeeded.downloadUrl}`,
+                              event.currentRoundsubmission.fileSeeded.filename
                             )"
                             v-tooltip="'Download the file that has been assigned to you for this round'">
+                              <span class="icon">
+                                <icon :name="'download'" scale="1"></icon>
+                              </span>
                               Download your file
                             </a>
                             <div
@@ -128,7 +131,7 @@
                               v-if="
                                 currentUser &&
                                 ['Started','Submitted','FillInAquired','Refuted']
-                                .includes(data.events[0].currentRoundsubmission.status)"
+                                .includes(event.currentRoundsubmission.status)"
                               v-tooltip="'Submit your file. Note: You may re-upload until the round has ended.'">
                               <label class="file-label" style="margin-top: -5px;">
                                 <form enctype="multipart/form-data" novalidate>
@@ -137,7 +140,7 @@
                                     type="file"
                                     name="initial"
                                     @change="submitChanges(
-                                      data.events[0].currentRoundsubmission.id,
+                                      event.currentRoundsubmission.id,
                                       $event.target.name,
                                       $event.target.files,
                                       query
@@ -145,7 +148,10 @@
                                 </form>
                                 <span class="file-cta" style="margin-top: -1px;">
                                   <span class="file-label">
-                                    {{ data.events[0].currentRoundsubmission.status == 'Submitted' ?
+                                    <span class="icon">
+                                      <icon :name="'paper-plane'" scale="1"></icon>
+                                    </span>
+                                    {{ event.currentRoundsubmission.status == 'Submitted' ?
                                     'Resubmit' : 'Submit' }} your changes
                                   </span>
                                 </span>
@@ -154,11 +160,10 @@
                             <ApolloMutation
                                 v-if="currentUser &&
                                 ['Started','FillInAquired','Refuted']
-                                .includes(data.events[0].currentRoundsubmission.status)"
-                                :mutation="require('../graphql/skipRound.gql')"
+                                .includes(event.currentRoundsubmission.status)"
+                                :mutation="skipRoundsubmissionMutation"
                                 :variables="{
-                                  roundsubmissionId: data.events[0].currentRoundsubmission.id,
-                                  userId: currentUser.id
+                                  id: event.currentRoundsubmission.id,
                                 }"
                                 :refetchQueries="refetchOnJoin"
                                 @error="onError">
@@ -166,21 +171,39 @@
                                 <a
                                   href="#"
                                   v-tooltip="'Mark the round as skipped so a fill-in participant can take your place for this round'"
-                                  @click.prevent="skipRound(data.events[0], mutate)"
-                                  class="button is-warning">Skip this round</a>
+                                  @click.prevent="skipRoundsubmission(event, mutate)"
+                                  class="button is-warning">
+                                  <span class="icon">
+                                    <icon :name="'fast-forward'" scale="1"></icon>
+                                  </span>
+                                  Skip this round
+                                </a>
                               </template>
                             </ApolloMutation>
+                            <a
+                              v-if="currentUser &&
+                              ['Started','FillInAquired','Refuted']
+                              .includes(event.currentRoundsubmission.status)"
+                              href="#"
+                              v-tooltip="'Mark all remaining rounds as skipped so a fill-in participant can take your place for the rest of the event'"
+                              @click.prevent="skipRemaining(event, query)"
+                              class="button is-danger">
+                              <span class="icon">
+                                <icon :name="'frown'" scale="1"></icon>
+                              </span>
+                              Skip remaining rounds
+                            </a>
                         </div>
                       </template>
-                      <template v-else-if="data.events[0].status == 'Complete'">
+                      <template v-else-if="event.status == 'Complete'">
                         The event has ended. Thank you for taking part!
                       </template>
                     </div>
                     <div class="participation-join"
-                      v-if="!data.events[0].isParticipant &&
-                      ['Planned','Started'].includes(data.events[0].status)">
+                      v-if="!event.isParticipant &&
+                      ['Planned','Started'].includes(event.status)">
                       <template v-if="currentUser">
-                        <p v-if="data.events[0].status == 'Planned'">
+                        <p v-if="event.status == 'Planned'">
                           Sign up as an ordinary participant.<br />You'll be assigned one file per round.
                         </p>
                         <p v-else>
@@ -189,13 +212,13 @@
                         <ApolloMutation
                             v-if="currentUser"
                             :mutation="require('../graphql/joinEvent.gql')"
-                            :variables="{ id: data.events[0].id }"
+                            :variables="{ id: event.id }"
                             :refetchQueries="refetchOnJoin"
                             @error="onError">
                           <template slot-scope="{ mutate, loading, error, gqlError }">
                             <a
                               href="#"
-                              @click.prevent="joinEvent(data.events[0], mutate)"
+                              @click.prevent="joinEvent(event, mutate)"
                               class="join-button button is-primary">Join</a>
                           </template>
                         </ApolloMutation>
@@ -206,7 +229,7 @@
                     </div>
                   </div>
                   <div
-                    v-if="data.events[0].isAdministrator && data.events[0].status != 'Completed'"
+                    v-if="event.isAdministrator && event.status != 'Completed'"
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
@@ -214,17 +237,13 @@
                     }">
                     <div class="card-title">Administration</div>
                     <div>
-                      <table class="table" v-if="data.events[0].status == 'Started'">
-                        <tr v-if="data.events[0].currentRound"><th>Round</th><td>{{ data.events[0].currentRound.index + 1 }}</td></tr>
+                      <table class="table" v-if="event.status == 'Started'">
+                        <tr v-if="event.currentRound"><th>Round</th><td>{{ event.currentRound.index + 1 }}</td></tr>
                         <tr>
                           <th>Status</th>
                           <td>
-                            <template v-for="(quantity, status) in submissionStatuses(data.events[0])">
-                              <router-link
-                                :to="`/events/${data.events[0].id}/roundsubmissions?status=${status}`">
-                                  {{ status }}
-                                </router-link>
-                                ({{ quantity }})
+                            <template v-for="(quantity, status) in submissionStatuses(event)">
+                              {{ status }} ({{ quantity }})
                             </template>
                           </td>
                         </tr>
@@ -237,18 +256,29 @@
                             @error="onError">
                           <template slot-scope="{ mutate, loading, error, gqlError }">
                               <a class="button is-primary"
-                              @click.prevent="nextEventRound(data.events[0], mutate)"
-                              v-if="data.events[0].status == 'Started'"
-                              v-tooltip="'End this round and start the next one with files getting passed on.'">End round</a>
+                              @click.prevent="nextEventRound(event, mutate)"
+                              v-if="event.status == 'Started'"
+                              v-tooltip="'End this round and start the next one with files getting passed on.'">
+                              <span class="icon">
+                                <icon :name="'check'" scale="1"></icon>
+                              </span>
+                                End round
+                             </a>
                           </template>
                         </ApolloMutation>
                         <a class="button is-warning"
-                          v-if="data.events[0].status == 'Started' && !allHaveSubmitted(data.events[0])"
-                          v-tooltip="'Mark all unsubmitted roundsubmissions as skips and assign fill-ins where possible.'">Request fill-ins</a>
+                          @click.prevent="requestFillIns(event, query)"
+                          v-if="showRequestFillIns(event)"
+                          v-tooltip="'Mark all unsubmitted roundsubmissions as skips and assign fill-ins where possible.'">
+                            <span class="icon">
+                              <icon :name="'exchange-alt'" scale="1"></icon>
+                            </span>
+                            Request fill-ins
+                        </a>
                         <a class="button is-info"
-                        v-if="!data.events[0].isPublic && ['Planned','Started'].includes(data.events[0].status)"
+                        v-if="!event.isPublic && ['Planned','Started'].includes(event.status)"
                         v-tooltip="'Invite participants'">Invite</a>
-                        <template v-if="data.events[0].status == 'Planned'">
+                        <template v-if="event.status == 'Planned'">
                           <div
                             class="file button is-info"
                             v-tooltip="'This sets the file that the participants have to start with initially.'">
@@ -259,7 +289,7 @@
                                   type="file"
                                   name="initial"
                                   @change="changeInitial(
-                                    data.events[0].id,
+                                    event.id,
                                     $event.target.name,
                                     $event.target.files,
                                     query
@@ -267,21 +297,21 @@
                               </form>
                               <span class="file-cta" style="margin-top: -1px;">
                                 <span class="file-label">
-                                  {{ data.events[0].initialFile ? 'Change' : 'Upload' }} initial file
+                                  {{ event.initialFile ? 'Change' : 'Upload' }} initial file
                                 </span>
                               </span>
                             </label>
                           </div>
                           <ApolloMutation
                               :mutation="require('../graphql/startEvent.gql')"
-                              :variables="{ id: data.events[0].id }"
+                              :variables="{ id: event.id }"
                               :refetchQueries="refetchOnJoin"
                               @error="onError">
                             <template slot-scope="{ mutate, loading, error, gqlError }">
                                 <a class="button is-primary"
-                                @click.prevent="startEvent(data.events[0], mutate)"
-                                v-if="data.events[0].status == 'Planned' &&
-                                      data.events[0].numParticipants > 0"
+                                @click.prevent="startEvent(event, mutate)"
+                                v-if="event.status == 'Planned' &&
+                                      event.numParticipants > 0"
                                 v-tooltip="'This starts the event and generates the swap schedule. There\'s no turning back from when this is done.'">
                                   Start first round</a>
                             </template>
@@ -292,23 +322,23 @@
                   </div>
               </div>
               <div
-                v-if="data.events[0].roundsubmissions.length > 0"
+                v-if="event.roundsubmissions.length > 0"
                 class="event-schedule">
                 <div class="card-title">Schedule</div>
-                <swap-schedule :schedule="getSchedule(data.events[0])" :colorguide="true" />
+                <swap-schedule :schedule="schedule" :colorguide="true" />
               </div>
               <div class="event-description">
                 <div class="card-title">Description</div>
-                <div class="" v-html="formatText(data.events[0].description)" />
+                <div class="" v-html="formatText(event.description)" />
               </div>
               <div
-                v-if="data.events[0].status == 'Completed' ||
-                      data.events[0].areChangesVisible"
+                v-if="event.status == 'Completed' ||
+                      event.areChangesVisible"
                 class="comments">
                 <div class="card-title">Comments</div>
                 <vue-disqus
                   shortname="monsquaz-swap"
-                  :identifier="`event-${data.events[0].id}`"
+                  :identifier="`event-${event.id}`"
                   :url="currentUrl" />
               </div>
             </section>
@@ -322,6 +352,12 @@
 <script>
   import 'vue-awesome/icons/expand';
   import 'vue-awesome/icons/compress';
+  import 'vue-awesome/icons/frown';
+  import 'vue-awesome/icons/download';
+  import 'vue-awesome/icons/paper-plane';
+  import 'vue-awesome/icons/check';
+  import 'vue-awesome/icons/fast-forward';
+  import 'vue-awesome/icons/exchange-alt';
   import axios from 'axios';
   import config from '../../config';
   let uploader = function(urlFormatter, swalParams) {
@@ -359,12 +395,18 @@
     name: 'event-page',
     props: {},
     data: () => ({
+      eventsQuery: require('../graphql/events.gql'),
       usersQuery: require('../graphql/users.gql'),
       apiUrl: 'http://monsquaz.org:4000',
       error: null,
-      expanded: false
+      expanded: false,
+      skipRoundsubmissionMutation: require('../graphql/skipRoundsubmission.gql'),
+      event: null
     }),
     computed: {
+      schedule: function() {
+        return this.getSchedule(this.event);
+      },
       currentUrl: function() {
         return window.location.href.split('?')[0];
       },
@@ -383,6 +425,95 @@
       }
     },
     methods: {
+      skipRemaining: function(event, eventsQuery) {
+        let self = this;
+        this.$swal({
+          title: 'You are about to skip all remaining rounds',
+          html: `You are about to skip the remaining rounds of <b>${event.name}</b><br />.
+          This means that you cannot contribute any further.
+          Only do this if you are certain that you can\'t contribute regardless of what song you will receive.<br />
+          Are you absolutely sure?`,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, goodbye!'
+        }).then((res) => {
+          event.roundsubmissions
+            .filter(
+              rs => rs.participant.id == self.currentUser.id && ![
+                'Submitted', 'Completed', 'Skipped'
+              ].includes(rs.status)
+            ).reduce((ack, rs) => {
+              return ack.then(_ => self.$apollo.mutate({
+                  mutation: self.skipRoundsubmissionMutation,
+                  variables: {
+                    id: rs.id,
+                  }
+                })
+              )
+            }, Promise.all([])).then(_ => {
+              eventsQuery.refetch();
+            });
+        })
+      },
+      requestFillIns: function(event, eventsQuery) {
+        let self = this;
+        this.$swal({
+          title: `You are about to request fill-ins`,
+          html: `You are about to request fill-ins for all
+          submissions that aren\'t submitted yet.
+          <br /><br />Are you sure?`,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, unfortunately!'
+        }).then((res) => {
+          /* Skip in sequence, where we try to find fill-ins for the most skipped songs first. */
+          event.roundsubmissions
+            .filter(
+              rs => rs.round.index == event.currentRound.index && ![
+                'Planned', 'Submitted', 'Completed', 'Skipped'
+              ].includes(rs.status)
+            )
+            .map(rs => ({
+              id: rs.id,
+              numSkips: event.roundsubmissions.reduce((ack, rs2) => {
+                if (rs2.song_id == rs.song_id &&
+                    rs2.status == 'Skipped') {
+                  ack++;
+                }
+                return ack;
+              }, 0),
+              timesFilledIn: event.roundsubmissions.reduce((ack, rs2) => {
+                if (rs2.song_id == rs.song_id &&
+                    rs2.participant.id != rs2.originalParticipant.id) {
+                  ack++;
+                }
+                return ack;
+              }, 0)
+            }))
+            .sort((a, b) => {
+              if (a.numSkips > b.numSkips) return 1;
+              if (a.numSkips < b.numSkips) return -1;
+              if (a.timesFilledIn > b.timesFilledIn) return -1;
+              if (a.timesFilledIn < b.timesFilledIn) return 1;
+              return 0;
+            })
+            .reduce((ack, rs) => {
+              return ack.then(_ => self.$apollo.mutate({
+                  mutation: self.skipRoundsubmissionMutation,
+                  variables: {
+                    id: rs.id,
+                  }
+                })
+              )
+            }, Promise.all([])).then(_ => {
+              eventsQuery.refetch();
+            });
+        })
+      },
       sizeToggle: function() {
         this.expanded = !this.expanded;
       },
@@ -403,6 +534,9 @@
             document.body.appendChild(link);
             link.download = filename;
             link.click();
+            setTimeout(() => {
+              document.body.removeChild(link);
+            },1)
           }
         }
         xhr.onerror = function(e) {
@@ -431,8 +565,8 @@
       img: function(d){
         return `<img src="${d}" />`;
       },
-      linker: function() {
-        return 'temp'
+      userLinker: function(user) {
+        return `/users/${user.slug}`;
       },
       formatText: function(text) {
         return text.replace(/(?:\r\n|\r|\n)/g, '<br />');
@@ -441,7 +575,7 @@
         this.error = err;
       },
       onResult: function({ data }) {
-        // TODO?
+        this.event = data.events[0];
       },
       refetchOnJoin: function() {
         return ['Events'];
@@ -472,7 +606,7 @@
           if (res.value) mutate();
         })
       },
-      skipRound: function(event, mutate) {
+      skipRoundsubmission: function(event, mutate) {
         this.$swal({
           title: 'You are about to skip your round.',
           html: `You are about to skip round <b>${event.currentRound.index + 1}</b> of <b>${event.name}</b><br />.
@@ -484,7 +618,7 @@
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
           confirmButtonText: 'Yes, sorry!'
-        }).then((res) => {console.warn('COCK', res);
+        }).then((res) => {
           if (res.value) mutate();
         })
       },
@@ -529,13 +663,15 @@
             return ack;
           }, {});
       },
-      allHaveSubmitted: function(event) {
+      showRequestFillIns: function(event) {
+        if (event.status != 'Started') return false;
         if (!event.currentRound) return false;
-        return !event.roundsubmissions
+        return event.roundsubmissions
           .filter(rs => rs.round.index == event.currentRound.index)
-          .find(rs => rs.status != 'Submitted');
+          .find(rs => ['Started','Refuted'].includes(rs.status));
       },
       getSchedule: function(event) { // TODO: Make computed or watched so it doesn't fire 4 times
+      console.warn('GET SCHEDULE');
         let square = new Array(event.numRounds).fill(null).map(() => new Array(event.numRounds).fill({
           title: '?'
         }));
@@ -619,6 +755,9 @@
       margin-top: 10px;
       margin-right: 10px;
     }
+  }
+  .button .icon:first-child:last-child {
+    margin-right: auto;
   }
   .comments {
     margin-top: 25px;
