@@ -22,6 +22,46 @@
               <tr v-if="data.users[0].lastname"><th>Lastname</th><td>{{ data.users[0].lastname }}</td></tr>
               <tr v-if="data.users[0].email"><th>Email</th><td>{{ data.users[0].email }}</td></tr>
             </table>
+
+            <div class="columns">
+              <div class="column is-half">
+                <div class="section-title">
+                  Events participated
+                </div>
+                <paginator
+                  :resource="'events'"
+                  :query="eventsQuery"
+                  :show-headers="false"
+                  :headers="[
+                    { field: 'name', title: 'Name' }
+                  ]"
+                  :linker="eventsLinker"
+                  :sort="'id'"
+                  :descending="true"
+                  :filters="{
+                    participantUserId: user.id,
+                  }" />
+              </div>
+              <div class="column is-half">
+                <div class="section-title">
+                  Events hosted
+                </div>
+                <paginator
+                  :resource="'events'"
+                  :query="eventsQuery"
+                  :show-headers="false"
+                  :headers="[
+                    { field: 'name', title: 'Name' }
+                  ]"
+                  :linker="eventsLinker"
+                  :sort="'id'"
+                  :descending="true"
+                  :filters="{
+                    hostUserId: user.id,
+                  }" />
+              </div>
+            </div>
+
           </section>
         </div>
       </template>
@@ -35,15 +75,21 @@
     props: {},
     data: () => ({
       usersQuery: require('../graphql/users.gql'),
+      eventsQuery: require('../graphql/events.gql'),
+      user: null,
       error: ''
     }),
     computed: {
     },
     methods: {
+      eventsLinker: function (event) {
+        return `/events/${event.slug}`;
+      },
       onError: function (err) {
         this.error = err;
       },
       onResult: function({ data }) {
+        this.user = data.users[0];
       }
     },
     metaInfo: () => ({

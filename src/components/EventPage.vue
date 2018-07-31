@@ -68,10 +68,10 @@
                     :query="usersQuery"
                     :show-headers="false"
                     :headers="[
-                      {field: 'username', title: 'Username'}
+                      { field: 'username', title: 'Username', sortable: true }
                     ]"
                     :linker="userLinker"
-                    :sort="'id'"
+                    :sort="'username'"
                     :descending="false"
                     :filters="{ id: event.participants.map( ({id}) => id ) }"
                     ></paginator>
@@ -80,7 +80,7 @@
               </div>
                 <div class="columns">
                   <div
-                    v-if="event.status != 'Completed'"
+                    v-if="!['Completed','Published'].includes(event.status)"
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
@@ -181,11 +181,9 @@
                               </template>
                             </ApolloMutation>
                             <a
-                              v-if="currentUser &&
-                              ['Started','FillInAquired','Refuted']
-                              .includes(event.currentRoundsubmission.status)"
+                              v-if="canSkipRemaining(event)"
                               href="#"
-                              v-tooltip="'Mark all remaining rounds as skipped so a fill-in participant can take your place for the rest of the event'"
+                              v-tooltip="'Quit the event. Avoid doing this.'"
                               @click.prevent="skipRemaining(event, query)"
                               class="button is-danger">
                               <span class="icon">
@@ -229,7 +227,7 @@
                     </div>
                   </div>
                   <div
-                    v-if="event.isAdministrator && event.status != 'Completed'"
+                    v-if="event.isAdministrator && event.status != 'Published'"
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
@@ -332,7 +330,7 @@
                 <div class="" v-html="formatText(event.description)" />
               </div>
               <div
-                v-if="event.status == 'Completed' ||
+                v-if="event.status == 'Published' ||
                       event.areChangesVisible"
                 class="comments">
                 <div class="card-title">Comments</div>
@@ -425,6 +423,17 @@
       }
     },
     methods: {
+      canSkipRemaining: function(event) {
+        let self = this;
+        if (!this.currentUser) return false;
+        if (!['Started','FillInAquired','Refuted']
+          .includes(event.currentRoundsubmission.status)) return false;
+        if (event.roundsubmissions
+            .filter(
+              rs => rs.originalParticipant.id == self.currentUser.id
+           ).length != event.numRounds) return false;
+        return true;
+      },
       skipRemaining: function(event, eventsQuery) {
         let self = this;
         this.$swal({
@@ -439,6 +448,7 @@
           cancelButtonColor: '#d33',
           confirmButtonText: 'Yes, goodbye!'
         }).then((res) => {
+          if (!res.value) return;
           event.roundsubmissions
             .filter(
               rs => rs.participant.id == self.currentUser.id && ![
@@ -470,6 +480,7 @@
           cancelButtonColor: '#d33',
           confirmButtonText: 'Yes, unfortunately!'
         }).then((res) => {
+          if (!res.value) return;
           /* Skip in sequence, where we try to find fill-ins for the most skipped songs first. */
           event.roundsubmissions
             .filter(
@@ -671,7 +682,6 @@
           .find(rs => ['Started','Refuted'].includes(rs.status));
       },
       getSchedule: function(event) { // TODO: Make computed or watched so it doesn't fire 4 times
-      console.warn('GET SCHEDULE');
         let square = new Array(event.numRounds).fill(null).map(() => new Array(event.numRounds).fill({
           title: '?'
         }));

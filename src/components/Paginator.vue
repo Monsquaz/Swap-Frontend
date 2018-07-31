@@ -7,7 +7,7 @@
      <template slot-scope="{ result: { data, loading } }">
        <template v-if="data && !loading">
          <table class="table">
-           <tr v-if="showHeaders">
+           <tr v-if="showHeaders && data[resource].length > 0">
              <th
                @click="sortBy(header)"
                :class="{
@@ -23,7 +23,12 @@
                  scale="1"></icon>
              </th>
            </tr>
-           <tr @click="goto(linker(item))" class="single-item" v-for="item in data[resource]">
+           <tr v-if="data[resource].length == 0">
+             <td :colspan="headers.length" style="border: none;">
+               <i>- None -</i>
+             </td>
+           </tr>
+           <tr v-else @click="goto(linker(item))" class="single-item" v-for="item in data[resource]">
              <td v-for="header in headers">
                <div v-if="typeof header.field === 'function'"
                v-html="header.field(item)" />

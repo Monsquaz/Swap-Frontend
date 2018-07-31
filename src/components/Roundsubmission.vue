@@ -43,7 +43,12 @@
                 v-if="roundsubmission.participant.id !=
                       roundsubmission.originalParticipant.id">
                 <th>Fill in participant</th>
-                <td>{{ roundsubmission.participant.username }}</td>
+                <td>
+                  <router-link
+                    :to="`/users/${roundsubmission.participant.slug}`">
+                  {{ roundsubmission.participant.username }}
+                </router-link>
+                </td>
               </tr>
               <tr v-if="roundsubmission.fileSeeded">
                   <th>Seeded file</th><td>
@@ -112,7 +117,7 @@
             <div
               class="columns"
               v-if="roundsubmission.event.isPublic &&
-                    roundsubmission.event.status == 'Completed' ||
+                    ['Completed','Published'].includes(roundsubmission.event.status) ||
                     roundsubmission.event.isAdministrator ||
                     roundsubmission.event.isScheduleVisible">
               <div class="column is-half">
@@ -155,7 +160,7 @@
               </div>
             </div>
             <div
-              v-if="roundsubmission.event.status == 'Completed' ||
+              v-if="roundsubmission.event.status == 'Published' ||
                     roundsubmission.event.areChangesVisible"
               class="comments">
               <div class="section-title">Comments</div>
