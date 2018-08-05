@@ -1,0 +1,6 @@
+mutation InviteUser($eventId: ID!, $userId: ID!) {
+  inviteUser(params: { eventId: $eventId, userId: $userId }) {
+    code
+    message
+  }
+}

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --config ./webpack.config.js --mode development",
+    "build": "webpack -p --config ./webpack.config.js --mode production",
     "build-fragments": "node fragmentTypeQuery.js"
   },
   "author": "",

@@ -29,6 +29,9 @@
               <div class="notification is-danger" v-if="error">
                 {{ error.message }}
               </div>
+              <div class="notification is-info" v-if="message">
+                {{ message }}
+              </div>
               <div class="columns">
                 <div class="column is-half event-details">
                   <div class="card-title">Event details</div>
@@ -56,6 +59,24 @@
                       </a></td>
                     </tr>
                   </table>
+                  <div v-if="event.isAdministrator" class="event-actions">
+                    <a class="button" href="#"
+                       v-tooltip="'Edit event details'"
+                       @click.prevent="$router.push({ path: `/events/${event.slug}/edit`})">
+                       <span class="icon">
+                         <icon :name="'edit'" scale="1"></icon>
+                       </span>
+                       Edit event
+                     </a>
+                     <a class="button" v-if="event.status == 'Planned'" href="#"
+                        v-tooltip="'Cancel the event before it\'s started'"
+                        @click.prevent="cancelEvent(event, query)">
+                        <span class="icon">
+                          <icon :name="'ban'" scale="1"></icon>
+                        </span>
+                       Cancel event
+                     </a>
+                  </div>
                 </div>
                 <div class="event-participants column is-half">
                   <div class="card-title">Participants</div>
@@ -76,11 +97,34 @@
                     :filters="{ id: event.participants.map( ({id}) => id ) }"
                     ></paginator>
                   </template>
+
+                  <template v-if="!event.isPublic && event.isAdministrator">
+                    <div class="card-title card-title-2">Invitations</div>
+                    <template v-if="event.numParticipants == 0">
+                      None, yet
+                    </template>
+                    <paginator
+                    :resource="'users'"
+                    :query="usersQuery"
+                    :show-headers="false"
+                    :headers="[
+                      { field: 'username', title: 'Username', sortable: true }
+                    ]"
+                    :linker="userLinker"
+                    :sort="'username'"
+                    :descending="false"
+                    :filters="{
+                      id: event.invitedUsers
+                        .filter(u => !event.participants.find(u2 => u.id == u2.id))
+                        .map(({ id }) => id )
+                    }"
+                    ></paginator>
+                  </template>
+
                 </div>
               </div>
                 <div class="columns">
                   <div
-                    v-if="!['Completed','Published'].includes(event.status)"
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
@@ -88,8 +132,40 @@
                       'is-half': event.isAdministrator
                     }">
                     <div class="card-title">Participation</div>
-                    <div v-if="!event.currentRoundsubmission && event.isParticipant">
-                      Not currently in a round
+                    <template v-if="['Completed','Published'].includes(event.status)">
+                      The event has ended.
+                      <template v-if="event.isParticipant && didParticipate(event)">
+                        Thank you for taking part!
+                      </template>
+                    </template>
+                    <div v-else-if="!event.currentRoundsubmission && event.isParticipant">
+                      <ApolloMutation
+                          v-if="event.status == 'Planned'"
+                          :mutation="leaveEventMutation"
+                          :variables="{
+                            id: event.id,
+                          }"
+                          :refetchQueries="refetchEvent"
+                          @error="onError"
+                          @done="onDone">
+                        <template slot-scope="{ mutate, loading, error, gqlError }">
+                          <div class="roundsubmission-actions">
+                            <a
+                              href="#"
+                              v-tooltip="'Undo signing up for this event'"
+                              @click.prevent="leaveEvent(event, mutate)"
+                              class="button is-warning">
+                              <span class="icon">
+                                <icon :name="'sign-out-alt'" scale="1"></icon>
+                              </span>
+                              Leave event
+                            </a>
+                          </div>
+                        </template>
+                      </ApolloMutation>
+                      <template v-else>
+                        Not currently in a round
+                      </template>
                     </div>
                     <div v-if="event.currentRoundsubmission && event.isParticipant">
                       <template v-if="event.status == 'Planned'">
@@ -149,7 +225,7 @@
                                 <span class="file-cta" style="margin-top: -1px;">
                                   <span class="file-label">
                                     <span class="icon">
-                                      <icon :name="'paper-plane'" scale="1"></icon>
+                                      <icon :name="'upload'" scale="1"></icon>
                                     </span>
                                     {{ event.currentRoundsubmission.status == 'Submitted' ?
                                     'Resubmit' : 'Submit' }} your changes
@@ -165,8 +241,9 @@
                                 :variables="{
                                   id: event.currentRoundsubmission.id,
                                 }"
-                                :refetchQueries="refetchOnJoin"
-                                @error="onError">
+                                :refetchQueries="refetchEvent"
+                                @error="onError"
+                                @done="onDone">
                               <template slot-scope="{ mutate, loading, error, gqlError }">
                                 <a
                                   href="#"
@@ -193,9 +270,6 @@
                             </a>
                         </div>
                       </template>
-                      <template v-else-if="event.status == 'Complete'">
-                        The event has ended. Thank you for taking part!
-                      </template>
                     </div>
                     <div class="participation-join"
                       v-if="!event.isParticipant &&
@@ -209,15 +283,19 @@
                         </p>
                         <ApolloMutation
                             v-if="currentUser"
-                            :mutation="require('../graphql/joinEvent.gql')"
+                            :mutation="joinMutation"
                             :variables="{ id: event.id }"
-                            :refetchQueries="refetchOnJoin"
-                            @error="onError">
+                            :refetchQueries="refetchEvent"
+                            @error="onError"
+                            @done="onDone">
                           <template slot-scope="{ mutate, loading, error, gqlError }">
                             <a
                               href="#"
                               @click.prevent="joinEvent(event, mutate)"
-                              class="join-button button is-primary">Join</a>
+                              class="join-button button is-primary">
+                              <span class="icon">
+                                <icon :name="'sign-in-alt'" scale="1"></icon>
+                              </span>Join</a>
                           </template>
                         </ApolloMutation>
                       </template>
@@ -225,6 +303,7 @@
                         Login required to join
                       </template>
                     </div>
+                    <template if=""
                   </div>
                   <div
                     v-if="event.isAdministrator && event.status != 'Published'"
@@ -248,10 +327,29 @@
                       </table>
                       <div class="roundsubmission-actions">
                         <ApolloMutation
-                            :mutation="require('../graphql/nextEventRound.gql')"
-                            :variables="{ id: data.events[0].id }"
-                            :refetchQueries="refetchOnNextRound"
-                            @error="onError">
+                            :mutation="publishMutation"
+                            :variables="{ id: event.id }"
+                            :refetchQueries="refetchEvent"
+                            @error="onError"
+                            @done="onDone">
+                          <template slot-scope="{ mutate, loading, error, gqlError }">
+                              <a class="button is-primary"
+                              @click.prevent="publishEvent(event, mutate)"
+                              v-if="event.status == 'Completed'"
+                              v-tooltip="'Publish the event so that the songs get released and the pages can be commented on'">
+                              <span class="icon">
+                                <icon :name="'paper-plane'" scale="1"></icon>
+                              </span>
+                                Publish event
+                             </a>
+                          </template>
+                        </ApolloMutation>
+                        <ApolloMutation
+                            :mutation="nextRoundMutation"
+                            :variables="{ id: event.id }"
+                            :refetchQueries="refetchEvent"
+                            @error="onError"
+                            @done="onDone">
                           <template slot-scope="{ mutate, loading, error, gqlError }">
                               <a class="button is-primary"
                               @click.prevent="nextEventRound(event, mutate)"
@@ -273,9 +371,25 @@
                             </span>
                             Request fill-ins
                         </a>
-                        <a class="button is-info"
-                        v-if="!event.isPublic && ['Planned','Started'].includes(event.status)"
-                        v-tooltip="'Invite participants'">Invite</a>
+                        <ApolloMutation
+                            v-if="!event.isPublic && ['Planned','Started'].includes(event.status)"
+                            :mutation="inviteMutation"
+                            :refetchQueries="refetchEvent"
+                            @error="onError"
+                            @done="onDone">
+                          <template slot-scope="{ mutate, loading, error, gqlError }">
+                              <a class="button is-info"
+                              @click.prevent="inviteUser(event, mutate)"
+                              v-if="event.status == 'Started'"
+                              v-tooltip="'Invite participant to see/join this event.'">
+                                <span class="icon">
+                                  <icon :name="'plus'" scale="1"></icon>
+                                </span>
+                                Invite participant
+                             </a>
+                          </template>
+                        </ApolloMutation>
+
                         <template v-if="event.status == 'Planned'">
                           <div
                             class="file button is-info"
@@ -294,6 +408,9 @@
                                   )" />
                               </form>
                               <span class="file-cta" style="margin-top: -1px;">
+                                <span class="icon">
+                                  <icon :name="'exchange-alt'" scale="1"></icon>
+                                </span>
                                 <span class="file-label">
                                   {{ event.initialFile ? 'Change' : 'Upload' }} initial file
                                 </span>
@@ -301,16 +418,20 @@
                             </label>
                           </div>
                           <ApolloMutation
-                              :mutation="require('../graphql/startEvent.gql')"
+                              :mutation="startEventMutation"
                               :variables="{ id: event.id }"
-                              :refetchQueries="refetchOnJoin"
-                              @error="onError">
+                              :refetchQueries="refetchEvent"
+                              @error="onError"
+                              @done="onDone">
                             <template slot-scope="{ mutate, loading, error, gqlError }">
                                 <a class="button is-primary"
                                 @click.prevent="startEvent(event, mutate)"
                                 v-if="event.status == 'Planned' &&
-                                      event.numParticipants > 0"
+                                      event.numParticipants > 1"
                                 v-tooltip="'This starts the event and generates the swap schedule. There\'s no turning back from when this is done.'">
+                                  <span class="icon">
+                                    <icon :name="'play'" scale="1"></icon>
+                                  </span>
                                   Start first round</a>
                             </template>
                           </ApolloMutation>
@@ -336,7 +457,7 @@
                 <div class="card-title">Comments</div>
                 <vue-disqus
                   shortname="monsquaz-swap"
-                  :identifier="`event-${event.id}`"
+                  :identifier="`event-${event.slug}`"
                   :url="currentUrl" />
               </div>
             </section>
@@ -353,9 +474,16 @@
   import 'vue-awesome/icons/frown';
   import 'vue-awesome/icons/download';
   import 'vue-awesome/icons/paper-plane';
+  import 'vue-awesome/icons/upload';
   import 'vue-awesome/icons/check';
   import 'vue-awesome/icons/fast-forward';
   import 'vue-awesome/icons/exchange-alt';
+  import 'vue-awesome/icons/sign-in-alt';
+  import 'vue-awesome/icons/sign-out-alt';
+  import 'vue-awesome/icons/play';
+  import 'vue-awesome/icons/plus';
+  import 'vue-awesome/icons/edit';
+  import 'vue-awesome/icons/ban';
   import axios from 'axios';
   import config from '../../config';
   let uploader = function(urlFormatter, swalParams) {
@@ -376,7 +504,7 @@
             authorization: authToken ? `Bearer ${authToken}` : ""
           }
         }
-      ).then(function({ data }) {console.warn('res', );
+      ).then(function({ data }) {
         let params = [ ...swalParams ];
         if (typeof data != 'object') {
           params = ['Error', data, 'error'];
@@ -395,10 +523,18 @@
     data: () => ({
       eventsQuery: require('../graphql/events.gql'),
       usersQuery: require('../graphql/users.gql'),
-      apiUrl: 'http://monsquaz.org:4000',
+      apiUrl: 'https://swap.monsquaz.org:4000',
       error: null,
+      message: null,
       expanded: false,
       skipRoundsubmissionMutation: require('../graphql/skipRoundsubmission.gql'),
+      leaveEventMutation: require('../graphql/leaveEvent.gql'),
+      joinMutation: require('../graphql/joinEvent.gql'),
+      inviteMutation: require('../graphql/inviteUser.gql'),
+      publishMutation: require('../graphql/publishEvent.gql'),
+      nextRoundMutation: require('../graphql/nextEventRound.gql'),
+      startEventMutation: require('../graphql/startEvent.gql'),
+      cancelEventMutation: require('../graphql/cancelEvent.gql'),
       event: null
     }),
     computed: {
@@ -423,6 +559,38 @@
       }
     },
     methods: {
+      cancelEvent: function(event, eventsQuery) {
+        let self = this;
+        this.$swal({
+          title: `You are about to cancel the event`,
+          html: `Are you sure?`,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, unfortunately!'
+        }).then((res) => {
+          if (res.value) {
+            self.$apollo.mutate({
+              mutation: self.cancelEventMutation,
+              variables: {
+                id: event.id,
+              }
+            }).then((res) => {
+              eventsQuery.refetch();
+              setTimeout(() => {
+                location.href = '/events';
+              }, 2000);
+            });
+          }
+        });
+      },
+      didParticipate: function(event) {
+        if (!this.currentUser) return false;
+        return this.event.roundsubmissions.find(
+          rs => rs.participant.id == this.currentUser.id &&
+          rs.status == 'Completed');
+      },
       canSkipRemaining: function(event) {
         let self = this;
         if (!this.currentUser) return false;
@@ -557,7 +725,7 @@
       },
       submitChanges: uploader(
         (param) => {
-          return `http://monsquaz.org:4000/roundsubmissions/${param}/file`
+          return `https://swap.monsquaz.org:4000/roundsubmissions/${param}/file`
         },
         [
           'Uploaded!',
@@ -566,7 +734,7 @@
         ]
       ),
       changeInitial: uploader(
-        param => `http://monsquaz.org:4000/events/${param}/file`,
+        param => `https://swap.monsquaz.org:4000/events/${param}/file`,
         [
           'Uploaded!',
           'Initial file was uploaded!',
@@ -580,18 +748,21 @@
         return `/users/${user.slug}`;
       },
       formatText: function(text) {
-        return text.replace(/(?:\r\n|\r|\n)/g, '<br />');
+        return text
+          .replace(/(?:\r\n|\r|\n)/g, '<br />');
       },
       onError: function(err) {
         this.error = err;
+        this.message = '';
+      },
+      onDone: function({ data }){
+        this.error = '';
+        this.message = data[Object.keys(data)[0]].message;
       },
       onResult: function({ data }) {
         this.event = data.events[0];
       },
-      refetchOnJoin: function() {
-        return ['Events'];
-      },
-      refetchOnNextRound: function() {
+      refetchEvent: function() {
         return ['Events'];
       },
       joinEvent: function(event, mutate) {
@@ -613,6 +784,62 @@
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
           confirmButtonText: 'Yes, I\'m up for it!'
+        }).then((res) => {
+          if (res.value) mutate();
+        })
+      },
+      inviteUser: function(event, mutate) {
+        let self = this;
+        this.$swal({
+          title: 'Username to invite',
+          input: 'text',
+          showCancelButton: true,
+          inputValidator: (value) => {
+            return !value && 'You need to write something!'
+          }
+        }).then((res) => {
+          if (res.value) {
+            self.$apollo.query({
+              query: self.usersQuery,
+              variables: {
+                filters: {
+                  username: res.value
+                }
+              }
+            }).then(res2 => {
+              if (res2.data.users.length == 1) {
+                let user = res2.data.users[0];
+                console.warn('user', user);
+                mutate({
+                  variables: {
+                    eventId: event.id,
+                    userId: user.id
+                  }
+                }).then(function(){
+                  self.error = null
+                  self.message = `${res.value} was invited successfully`;
+                  self.eventsQuery.refetch();
+                });
+              } else {
+                self.message = null;
+                self.error = {
+                  message: `Couldn\'t find user ${res.value}". Username is case sensitive.`
+                };
+              }
+            });
+          }
+        })
+      },
+      leaveEvent: function(event, mutate) {
+        this.$swal({
+          title: `You are about to leave the event.`,
+          html: `You are about to stop participating in ${event.name}<br /><br />
+          Are you absolutely sure?`,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, sorry!'
         }).then((res) => {
           if (res.value) mutate();
         })
@@ -660,6 +887,21 @@
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
           confirmButtonText: 'Yes, on to next round!'
+        }).then((res) => {
+          if (res.value) mutate();
+        })
+      },
+      publishEvent: function(event, mutate) {
+        this.$swal({
+          title: 'You are about to publish the event.',
+          html: `You are about to publish <b>${event.name}</b>.<br />
+          This means that everyone who can see this event also get to see the schedule and download all the files.<br /><br />
+          Are you absolutely sure?`,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, release it'
         }).then((res) => {
           if (res.value) mutate();
         })
@@ -740,8 +982,16 @@
     font-weight: bold;
     border-bottom: 1px solid #c0c0c0;
   }
+  .card-title-2 {
+    margin-top: 15px;
+  }
   .event-description {
     margin-top: 15px;
+  }
+  .event-actions {
+    text-align: center;
+    overflow: auto;
+    text-align: center;
   }
   .roundsubmission-actions {
     text-align: center;

@@ -7,6 +7,9 @@
       <section class="content-box column is-three-quarters">
         <div>
           <router-link v-if="currentUser" class="button" :to="{path: '/create-event'}">
+            <span class="icon">
+              <icon :name="'plus'" scale="1" style="margin-right: 10px;"></icon>
+            </span>
             New event
           </router-link>
         </div>
@@ -76,7 +79,7 @@
 </template>
 
 <script>
-  import EventsList from './EventsList.vue';
+  import 'vue-awesome/icons/plus';
   module.exports = {
     name: 'events-page',
     props: {},
@@ -87,13 +90,15 @@
           title: 'Participating',
           filters: {
             isParticipating: true,
+            NOT: { status: 'Cancelled' }
           }
         },
         {
           title: 'Other',
           filters: {
             isParticipating: false,
-          }
+            NOT: { status: 'Cancelled' }
+          },
         },
       ]
     }),
@@ -123,8 +128,7 @@
       currentUser: {
         query: require('../graphql/currentUser.gql')
       }
-    },
-    components: { EventsList }
+    }
   };
 </script>
 

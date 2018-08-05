@@ -1,0 +1,6 @@
+mutation CancelEvent($id: ID!) {
+  cancelEvent(id: $id) {
+    code
+    message
+  }
+}

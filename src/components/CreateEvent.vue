@@ -5,6 +5,9 @@
       subtitle="Make it good"></hero>
     <div class="columns is-mobile is-centered">
       <section class="content-box column is-two-thirds">
+        <div class="notification is-info" v-if="message">
+          {{ message }}
+        </div>
         <div v-if="!currentUser">Login required</div>
         <ApolloMutation
             v-if="currentUser"
@@ -16,7 +19,6 @@
             @done="onDone">
             <template slot-scope="{ mutate, loading, error, gqlError }">
               <form
-                @submit.prevent="validateBeforeSubmit"
                 v-bind:class="{ disabled: loading }">
                 <div class="field">
                   <label class="label">Name</label>
@@ -69,7 +71,6 @@
                           type="checkbox"
                           name="isPublic"
                           v-model="isPublic"
-                          v-validate="'required'"
                           tabindex="1" />
                         <span v-show="errors.has('isPublic')" class="help is-danger">
                           {{ errors.first('isPublic') }}
@@ -89,7 +90,6 @@
                           type="checkbox"
                           name="isScheduleVisible"
                           v-model="isScheduleVisible"
-                          v-validate="'required'"
                           tabindex="1" />
                         <span v-show="errors.has('isScheduleVisible')" class="help is-danger">
                           {{ errors.first('isScheduleVisible') }}
@@ -110,7 +110,6 @@
                           type="checkbox"
                           name="areChangesVisible"
                           v-model="areChangesVisible"
-                          v-validate="'required'"
                           tabindex="1" />
                         <span v-show="errors.has('areChangesVisible')" class="help is-danger">
                           {{ errors.first('areChangesVisible') }}
@@ -124,11 +123,13 @@
                   <label class="label">Anti-spam</label>
                   <div class="control has-icons-left has-icons-right">
                     <vue-recaptcha
+                      ref="recaptcha"
+                      @expired="onRecaptchaExpired"
                       @verify="onRecaptchaVerify"
                       v-bind:sitekey="siteKey" />
                   </div>
                 </div>
-                 <a class="button" @click="mutate()">
+                 <a class="button" @click="createEvent(mutate)">
                    <b>Create event</b>
                  </a>
                  <p v-if="gqlError" class="error">{{ gqlError.message }}</p>
@@ -154,15 +155,27 @@
       areChangesVisible: false,
       isScheduleVisible: false,
       isPublic: true,
-      captchaResponse: ''
+      captchaResponse: '',
+      message: null
     }),
     components: { VueRecaptcha },
     methods: {
-      onDone: function(res) {
-        console.warn('RES', res);
+      createEvent: function(mutate) {
+        mutate();
+        this.$refs.recaptcha.reset();
+      },
+      onDone: function({ data }) {
+        this.message = data.createEvent.message;
+        let self = this;
+        setTimeout(() => {
+          location.href = '/events';
+        }, 2000);
       },
       onRecaptchaVerify: function(res) {
         this.captchaResponse = res;
+      },
+      onRecaptchaExpired: function () {
+        this.$refs.recaptcha.reset();
       },
       onRefetch: function() {
         return ['Events']

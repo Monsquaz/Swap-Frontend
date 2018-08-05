@@ -40,6 +40,9 @@
                   :descending="true"
                   :filters="{
                     participantUserId: user.id,
+                    NOT: {
+                      status: 'Cancelled'
+                    }
                   }" />
               </div>
               <div class="column is-half">
@@ -58,6 +61,9 @@
                   :descending="true"
                   :filters="{
                     hostUserId: user.id,
+                    NOT: {
+                      status: 'Cancelled'
+                    }
                   }" />
               </div>
             </div>

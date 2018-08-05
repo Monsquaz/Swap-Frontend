@@ -6,39 +6,39 @@
           <img src="/images/favicon-32x32.png" class="logo" /> &nbsp;
           Monsquaz Swap
         </router-link>
-        <div class="navbar-burger burger" v-on:click="isActive = !isActive">
+        <div class="navbar-burger burger" @click="isActive = !isActive">
           <span></span>
           <span></span>
           <span></span>
         </div>
       </div>
-      <div class="navbar-menu" v-bind:class="{'is-active': isActive}">
+      <div class="navbar-menu" :class="{'is-active': isActive}">
         <div class="navbar-start">
           <div class="navbar-item">
-            <router-link class="navbar-link" to="/">Start</router-link>
+            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/">Start</router-link>
           </div>
           <div class="navbar-item">
-            <router-link class="navbar-link" to="/events">Events</router-link>
+            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/events">Events</router-link>
           </div>
           <div class="navbar-item">
-            <router-link class="navbar-link" to="/users">Users</router-link>
+            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/users">Users</router-link>
           </div>
           <div class="navbar-item">
-            <router-link class="navbar-link" to="/related-links">Related links</router-link>
+            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/related-links">Related links</router-link>
           </div>
         </div>
-        <ApolloQuery :query="require('./graphql/currentUser.gql')">
+        <ApolloQuery :query="currentUserQuery">
           <template slot-scope="{ query, result: { data, loading } }">
             <div class="navbar-end" v-if="data && !loading">
               <template v-if="!data.currentUser">
-                <router-link class="navbar-item" to="/login">Login</router-link>
-                <router-link class="navbar-item" to="/register">Register</router-link>
+                <router-link @click.native="isActive = !isActive" class="navbar-item" to="/login">Login</router-link>
+                <router-link @click.native="isActive = !isActive" class="navbar-item" to="/register">Register</router-link>
               </template>
               <template v-else>
                 <img
-                  v-bind:alt="data.currentUser.username"
-                  v-bind:src="data.currentUser.smallGravatar" />
-                <a class="navbar-item" v-on:click.stop="logout()">Logout</a>
+                  :alt="data.currentUser.username"
+                  :src="data.currentUser.smallGravatar" />
+                <a class="navbar-item" @click.stop="logout(query)">Logout</a>
               </template>
             </div>
           </template>
@@ -56,18 +56,19 @@
 </template>
 
 <script>
-import { ApolloQuery } from 'vue-apollo';
 import CookieLaw from 'vue-cookie-law'
 module.exports = {
   name: 'app',
   data: () => ({
-    isActive: false
+    isActive: false,
+    currentUserQuery: require('./graphql/currentUser.gql')
   }),
   computed: {},
   methods: {
-    logout: function() {
+    logout: function(query) {
       localStorage.removeItem('authToken');
-      location.reload();
+      this.$router.push({ path: '/' });
+      query.refetch();
     }
   },
   metaInfo: {
@@ -91,7 +92,6 @@ module.exports = {
   }
   .app {
     min-height: 100vh;
-    width: 100vw;
     background: linear-gradient(
       to bottom,
       #bbffdd 0.00%,  #bbffdd 1.35%,
@@ -124,7 +124,7 @@ module.exports = {
     background-size: cover;
   }
   .navbar {
-    width: calc(100vw - 16px);
+    width: auto;
     border-bottom: 1px solid black;
   }
   .menu {

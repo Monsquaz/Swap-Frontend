@@ -1,0 +1,6 @@
+mutation PublishEvent($id: ID!) {
+  publishEvent(id: $id) {
+    code
+    message
+  }
+}

@@ -5,7 +5,7 @@ module.exports = [
     component: () => import(/* webpackChunkName: "events-page" */ './components/EventsPage.vue') },
   { path: '/events/:slug',
     component: () => import(/* webpackChunkName: "event-page" */ './components/EventPage.vue') },
-  { path: '/events/:id/edit',
+  { path: '/events/:slug/edit',
     component: () => import(/* webpackChunkName: "edit-event" */ './components/EditEvent.vue') },
   { path: '/create-event',
     component: () => import(/* webpackChunkName: "create-event" */ './components/CreateEvent.vue') },

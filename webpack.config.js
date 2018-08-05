@@ -55,6 +55,8 @@ module.exports = {
     extensions: ['*', '.js', '.jsx']
   },
   output: {
+    filename: '[name]-bundle.js',
+    chunkFilename: '[name]-chunk.js',
     path: __dirname + '/dist',
     publicPath: '/',
     filename: 'bundle.js'

@@ -29,6 +29,9 @@
               SSL and checked against the username and password hash we have stored</p>
             <p>Upon success, an authToken in the form of a <a href="https://en.wikipedia.org/wiki/JSON_Web_Token" target="_blank">JWT</a> will be retreived and stored
               using localStorage in your browser. It can be thought of as a session cookie.</p>
+            <h3>Email policy</h3>
+            <p>When participating in events, automatic notifications will be sent to your email that are relevant for your participation,
+            such as whether the event has started or ended. The email addresses are not exposed to other users</p>
             <h3>Service usage</h3>
             <p>Data about you will be saved when interacting with the service in several ways</p>
             <p>Event administration, Event participation, event invitation, what you submitted during a

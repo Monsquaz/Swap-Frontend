@@ -6,41 +6,43 @@
      @result="onResult">
      <template slot-scope="{ result: { data, loading } }">
        <template v-if="data && !loading">
-         <table class="table">
-           <tr v-if="showHeaders && data[resource].length > 0">
-             <th
-               @click="sortBy(header)"
-               :class="{
-                sortable: header.sortable
-               }"
-               v-for="header in headers"
-               v-tooltip="header.tooltip">
-               {{ header.title }}
-               <icon
-                 v-if="sortActual == header.sortField ||
-                       sortActual == header.field"
-                 :name="descendingActual ? 'angle-down' : 'angle-up'"
-                 scale="1"></icon>
-             </th>
-           </tr>
-           <tr v-if="data[resource].length == 0">
-             <td :colspan="headers.length" style="border: none;">
-               <i>- None -</i>
-             </td>
-           </tr>
-           <tr v-else @click="goto(linker(item))" class="single-item" v-for="item in data[resource]">
-             <td v-for="header in headers">
-               <div v-if="typeof header.field === 'function'"
-               v-html="header.field(item)" />
-               <template v-else-if="typeof item[header.field] == 'boolean'">
-                 {{ !!item[header.field] ? 'Yes' : 'No' }}
-               </template>
-               <template v-else>
-                 {{ item[header.field] }}
-               </template>
-             </td>
-           </tr>
-         </table>
+         <div class="paginator">
+           <table class="table">
+             <tr v-if="showHeaders && data[resource].length > 0">
+               <th
+                 @click="sortBy(header)"
+                 :class="{
+                  sortable: header.sortable
+                 }"
+                 v-for="header in headers"
+                 v-tooltip="header.tooltip">
+                 {{ header.title }}
+                 <icon
+                   v-if="sortActual == header.sortField ||
+                         sortActual == header.field"
+                   :name="descendingActual ? 'angle-down' : 'angle-up'"
+                   scale="1"></icon>
+               </th>
+             </tr>
+             <tr v-if="data[resource].length == 0">
+               <td :colspan="headers.length" style="border: none;">
+                 <i>- None -</i>
+               </td>
+             </tr>
+             <tr v-else @click="goto(linker(item))" class="single-item" v-for="item in data[resource]">
+               <td v-for="header in headers">
+                 <div v-if="typeof header.field === 'function'"
+                 v-html="header.field(item)" />
+                 <template v-else-if="typeof item[header.field] == 'boolean'">
+                   {{ !!item[header.field] ? 'Yes' : 'No' }}
+                 </template>
+                 <template v-else>
+                   {{ item[header.field] }}
+                 </template>
+               </td>
+             </tr>
+           </table>
+         </div>
        </template>
      </template>
    </ApolloQuery>
@@ -110,6 +112,9 @@
 </script>
 
 <style lang="sass" scoped>
+.paginator {
+  overflow: auto;
+}
 .single-item {
   cursor: pointer;
   &:hover {

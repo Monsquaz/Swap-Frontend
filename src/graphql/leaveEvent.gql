@@ -1,0 +1,6 @@
+mutation LeaveEvent($id: ID!) {
+  leaveEvent(id: $id) {
+    code
+    message
+  }
+}

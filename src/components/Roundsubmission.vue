@@ -184,7 +184,7 @@
       roundsubmissionsQuery: require('../graphql/roundsubmissions.gql'),
       roundsubmission: null,
       error: '',
-      apiUrl: 'http://monsquaz.org:4000'
+      apiUrl: 'https://swap.monsquaz.org:4000'
     }),
     computed: {
       variables: () => {
@@ -196,6 +196,17 @@
         let xhr = new XMLHttpRequest()
         xhr.open('GET', url, true);
         const authToken = localStorage.getItem('authToken');
+        /*
+        if (!authToken) {
+          this.$swal({
+            title: `Login required.`,
+            html: `You need to login to download roundsubmission files`,
+            type: 'warning',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+          })
+          return;
+        }*/
         if (authToken) {
           xhr.setRequestHeader("Authorization", `Bearer ${authToken}`);
           xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -209,6 +220,9 @@
             document.body.appendChild(link);
             link.download = filename;
             link.click();
+            setTimeout(function() {
+              URL.revokeObjectURL(link.href);
+            }, 0);
           }
         }
         xhr.onerror = function(e) {

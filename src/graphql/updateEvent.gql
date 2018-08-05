@@ -1,13 +1,15 @@
 mutation UpdateEvent(
   $id: ID!
   $name: String!
+  $description: String!
   $areChangesVisible: Boolean!
   $isScheduleVisible: Boolean!
   $isPublic: Boolean!
 ) {
-  createEvent(params: {
+  updateEvent(params: {
     id: $id
-    name: $name
+    name: $name,
+    description: $description,
     areChangesVisible: $areChangesVisible
     isScheduleVisible: $isScheduleVisible
     isPublic: $isPublic

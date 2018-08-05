@@ -156,11 +156,13 @@
                   <label class="label">Anti-spam</label>
                   <div class="control has-icons-left has-icons-right">
                     <vue-recaptcha
+                      ref="recaptcha"
                       @verify="onRecaptchaVerify"
+                      @expired="onRecaptchaExpired"
                       v-bind:sitekey="siteKey" />
                   </div>
                 </div>
-               <a class="button" @click="mutate()">Register</a>
+               <a class="button" @click="register(mutate)">Register</a>
                <p v-if="gqlError" class="error">{{ gqlError.message }}</p>
               </form>
             </template>
@@ -190,14 +192,21 @@
       wasRegistered: false
     }),
     methods: {
+      register: function(mutate) {
+        mutate();
+        this.$refs.recaptcha.reset();
+      },
       onRecaptchaVerify: function(res) {
         this.captchaResponse = res;
+      },
+      onRecaptchaExpired: function () {
+        this.$refs.recaptcha.reset();
       },
       onDone: function(result) {
         this.wasRegistered = true;
       }
     },
-    components: { VueRecaptcha },
+    components: { 'vue-recaptcha': VueRecaptcha },
     metaInfo: () => ({
       title: () => 'Registration',
       meta: [{
