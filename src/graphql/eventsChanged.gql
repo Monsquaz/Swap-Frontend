@@ -1,0 +1,15 @@
+subscription EventsChanged {
+  eventsChanged {
+    id
+    name
+    slug
+    status
+    host { username }
+    numParticipants
+    numRounds
+    currentRound { index }
+    isPublic
+    isScheduleVisible
+    areChangesVisible
+  }
+}

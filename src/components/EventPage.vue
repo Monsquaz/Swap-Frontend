@@ -7,6 +7,12 @@
     @error="onError">
     <template slot-scope="{ query, result: { data, loading } }">
       <template v-if="data && !loading">
+        <ApolloSubscribeToMore
+          v-if="event"
+          :document="eventChangedSubscription"
+          :variables="{ id: event.id }"
+          :updateQuery="onEventChanged(query)"
+        />
         <div>
           <hero
             :title="`Event: ${event.name}`"
@@ -443,7 +449,14 @@
               <div
                 v-if="event.roundsubmissions.length > 0"
                 class="event-schedule">
-                <div class="card-title">Schedule</div>
+                <div class="card-title">
+                  Schedule
+                  <a
+                    v-if="event.status != 'Published' && (event.isAdministrator || event.isScheduleVisible)"
+                    @click.prevent="toggleRevealSchedule()">
+                    ({{ revealSchedule ? 'Hide full' : 'Show full'}})
+                  </a>
+                </div>
                 <swap-schedule :schedule="schedule" :colorguide="true" />
               </div>
               <div class="event-description">
@@ -521,7 +534,9 @@
     name: 'event-page',
     props: {},
     data: () => ({
+      revealSchedule: null,
       eventsQuery: require('../graphql/events.gql'),
+      eventChangedSubscription: require('../graphql/eventChanged.gql'),
       usersQuery: require('../graphql/users.gql'),
       apiUrl: 'https://swap.monsquaz.org:4000',
       error: null,
@@ -539,7 +554,9 @@
     }),
     computed: {
       schedule: function() {
-        return this.getSchedule(this.event);
+        return this.getSchedule(
+          this.event,
+          this.event.status == 'Published' || this.revealSchedule);
       },
       currentUrl: function() {
         return window.location.href.split('?')[0];
@@ -559,6 +576,30 @@
       }
     },
     methods: {
+      toggleRevealSchedule: function() {
+        this.revealSchedule = !this.revealSchedule;
+        window.localStorage.setItem(
+          `revealEvent${this.event.id}Schedule`,
+          this.revealSchedule
+        );
+      },
+      onEventChanged: function(query) {
+        return function(_, { subscriptionData }) {
+          let { data } = subscriptionData;
+          let { eventChanged } = data;
+          let { message } = eventChanged;
+          query.refetch();
+          if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+              new Notification('Monsquaz Swap', {
+                tag: message.replace(/\s/g, '-').toLowerCase(),
+                body: message,
+                icon: '/images/favicon-96x96.png'
+              } );
+            }
+          }
+        };
+      },
       cancelEvent: function(event, eventsQuery) {
         let self = this;
         this.$swal({
@@ -761,6 +802,11 @@
       },
       onResult: function({ data }) {
         this.event = data.events[0];
+        if (this.revealSchedule === null) {
+          this.revealSchedule = !!window.localStorage.getItem(
+            `revealEvent${this.event.id}Schedule`
+          );
+        }
       },
       refetchEvent: function() {
         return ['Events'];
@@ -923,13 +969,22 @@
           .filter(rs => rs.round.index == event.currentRound.index)
           .find(rs => ['Started','Refuted'].includes(rs.status));
       },
-      getSchedule: function(event) { // TODO: Make computed or watched so it doesn't fire 4 times
+      getSchedule: function(event, revealSchedule) { // TODO: Make computed or watched so it doesn't fire 4 times
+        let self = this;
         let square = new Array(event.numRounds).fill(null).map(() => new Array(event.numRounds).fill({
           title: '?'
         }));
         let songs = {};
         let songIdx = 0;
-        let t = event.roundsubmissions.reduce((ack, rs) => {
+        let roundsubmissions = event.roundsubmissions;
+        if (!revealSchedule) {
+          roundsubmissions = roundsubmissions.filter(
+            rs => {
+              return rs.participant.id == self.currentUser.id;
+            }
+          );
+        }
+        let t = roundsubmissions.reduce((ack, rs) => {
           if (!(rs.song.id in songs)) songs[rs.song.id] = songIdx++;
           ack[rs.round.index][songs[rs.song.id]] = {
             id: rs.id,

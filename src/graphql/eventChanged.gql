@@ -1,0 +1,8 @@
+subscription EventChanged($id: ID!) {
+  eventChanged(id: $id) {
+    event {
+      id
+    }
+    message
+  }
+}

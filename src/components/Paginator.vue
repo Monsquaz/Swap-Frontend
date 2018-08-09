@@ -4,7 +4,7 @@
      :query="query"
      :variables="variables"
      @result="onResult">
-     <template slot-scope="{ result: { data, loading } }">
+     <template slot-scope="{ query, result: { data, loading } }">
        <template v-if="data && !loading">
          <div class="paginator">
            <table class="table">
@@ -90,6 +90,9 @@
       }
     },
     methods: {
+      refetch: function () {
+        Object.values(this.$apollo.queries).forEach(query => query.refetch());
+      },
       goto: function(path) {
         this.$router.push({ path });
       },

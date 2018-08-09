@@ -19,7 +19,7 @@
             @done="onDone">
             <template slot-scope="{ mutate, loading, error, gqlError }">
               <form
-                v-bind:class="{ disabled: loading }">
+                :class="{ disabled: loading || created }">
                 <div class="field">
                   <label class="label">Name</label>
                   <div class="control">
@@ -149,6 +149,7 @@
     name: 'create-event',
     props: {},
     data: () => ({
+      created: false,
       siteKey,
       name: '',
       description: '',
@@ -165,10 +166,11 @@
         this.$refs.recaptcha.reset();
       },
       onDone: function({ data }) {
-        this.message = data.createEvent.message;
-        let self = this;
+        let { id, slug } = data.createEvent;
+        this.message = `Event with id ${id} created successfully`;
+        this.created = true;
         setTimeout(() => {
-          location.href = '/events';
+          location.href = `/events/${slug}`;
         }, 2000);
       },
       onRecaptchaVerify: function(res) {
@@ -197,14 +199,18 @@
 </script>
 
 <style lang="sass" scoped>
+  .disabled {
+    opacity: 0.8;
+    pointer-events: none;
+  }
   .description {
     height: 200px;
     resize: vertical;
   }
-    .checkbox-fields {
-      margin-top: 15px;
-      >div:not(:first-child) {
-        border-left: 1px solid #c0c0c0;
-      }
+  .checkbox-fields {
+    margin-top: 15px;
+    >div:not(:first-child) {
+      border-left: 1px solid #c0c0c0;
     }
+  }
 </style>

@@ -10,6 +10,12 @@
     @result="onResult">
     <template slot-scope="{ query, result: { data, loading } }">
       <template v-if="data && !loading">
+        <ApolloSubscribeToMore
+          v-if="roundsubmission"
+          :document="eventChangedSubscription"
+          :variables="{ id: roundsubmission.event.id }"
+          :updateQuery="onEventChanged(query)"
+        />
         <hero
           :title="`Roundsubmission: ${others(roundsubmission)}`"
           :subtitle="`Part of ${roundsubmission.event.name}`"></hero>
@@ -182,6 +188,7 @@
     props: {},
     data: () => ({
       roundsubmissionsQuery: require('../graphql/roundsubmissions.gql'),
+      eventChangedSubscription: require('../graphql/eventChanged.gql'),
       roundsubmission: null,
       error: '',
       apiUrl: 'https://swap.monsquaz.org:4000'
@@ -192,6 +199,23 @@
       }
     },
     methods: {
+      onEventChanged: function(query) {
+        return function(_, { subscriptionData }) {
+          let { data } = subscriptionData;
+          let { eventChanged } = data;
+          let { message } = eventChanged;
+          query.refetch();
+          if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+              new Notification('Monsquaz Swap', {
+                tag: message.replace(/\s/g, '-').toLowerCase(),
+                body: message,
+                icon: '/images/favicon-96x96.png'
+              } );
+            }
+          }
+        };
+      },
       downloadWithAuth: function(url, filename) {
         let xhr = new XMLHttpRequest()
         xhr.open('GET', url, true);

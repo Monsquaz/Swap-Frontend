@@ -14,7 +14,7 @@ mutation CreateEvent(
     isPublic: $isPublic
     captchaResponse: $captchaResponse
   }) {
-    code
-    message
+    id
+    slug
   }
 }

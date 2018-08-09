@@ -5,6 +5,9 @@
       subtitle="Find an event to take part in"></hero>
     <div class="columns is-centered">
       <section class="content-box column is-three-quarters">
+        <div class="notification is-info" v-if="dirty">
+          Updates have occured. <a @click.prevent="reload()">Refresh</a> page to see changes.
+        </div>
         <div>
           <router-link v-if="currentUser" class="button" :to="{path: '/create-event'}">
             <span class="icon">
@@ -16,6 +19,7 @@
         <div v-for="section in sections" class="events-paginator">
           <div class="section-title">{{ section.title }}</div>
             <paginator
+            :ref="section.ref"
             :resource="'events'"
             :query="eventsQuery"
             :show-headers="true"
@@ -84,9 +88,11 @@
     name: 'events-page',
     props: {},
     data: () => ({
+      dirty: false,
       eventsQuery: require('../graphql/events.gql'),
       sections: [
         {
+          ref: 'participating',
           title: 'Participating',
           filters: {
             isParticipating: true,
@@ -94,6 +100,7 @@
           }
         },
         {
+          ref: 'other',
           title: 'Other',
           filters: {
             isParticipating: false,
@@ -103,6 +110,9 @@
       ]
     }),
     methods: {
+      reload: function() {
+        window.location.reload();
+      },
       rounds: function(event) {
         if (event.currentRound) {
           return `${event.currentRound.index + 1} / ${event.numRounds}`
@@ -127,7 +137,16 @@
     apollo: {
       currentUser: {
         query: require('../graphql/currentUser.gql')
-      }
+      },
+      $subscribe: {
+        eventsChanged: {
+          query: require('../graphql/eventsChanged.gql'),
+          result(data) {
+            this.dirty = true;
+          },
+        },
+      },
+
     }
   };
 </script>

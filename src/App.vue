@@ -27,7 +27,7 @@
             <router-link @click.native="isActive = !isActive" class="navbar-link" to="/related-links">Related links</router-link>
           </div>
         </div>
-        <ApolloQuery :query="currentUserQuery">
+        <ApolloQuery :query="currentUserQuery" @result="onResult">
           <template slot-scope="{ query, result: { data, loading } }">
             <div class="navbar-end" v-if="data && !loading">
               <template v-if="!data.currentUser">
@@ -65,6 +65,10 @@ module.exports = {
   }),
   computed: {},
   methods: {
+    onResult: function({ data }){
+      let { currentUser } = data;
+      if (currentUser) Notification.requestPermission();  
+    },
     logout: function(query) {
       localStorage.removeItem('authToken');
       this.$router.push({ path: '/' });

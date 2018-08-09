@@ -60,7 +60,18 @@ module.exports = {
     path: __dirname + '/dist',
     publicPath: '/',
     filename: 'bundle.js'
-  },
+  },/*
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        node_vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          chunks: 'all',
+          priority: 1
+        }
+      }
+    }
+  },*/
   plugins: [
     new VueLoaderPlugin(),
     new WebpackBundleSizeAnalyzerPlugin('../../bundle-size-report.txt')
