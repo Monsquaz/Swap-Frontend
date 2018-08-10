@@ -58,11 +58,16 @@
                     <tr v-if="event.initialFile">
                       <th>Initial file</th>
                       <td>
-                        <a @click.prevent="downloadWithAuth(
+                        <a class="button" @click.prevent="downloadWithAuth(
                           `${apiUrl}${event.initialFile.downloadUrl}`,
-                          event.initialFile.filename)">
-                          {{ event.initialFile.filename }}
-                      </a></td>
+                          `${event.slug}.Initial.${getExtension(event.initialFile.filename)}`
+                        )">
+                          <span class="icon">
+                            <icon :name="'download'" scale="1"></icon>
+                          </span>&nbsp;
+                          Download
+                        </a>
+                      </td>
                     </tr>
                   </table>
                   <div v-if="event.isAdministrator" class="event-actions">
@@ -131,11 +136,40 @@
               </div>
                 <div class="columns">
                   <div
+                    v-if="event.status == 'Published'"
+                    class="event-finnished-songs column if-half">
+                    <div class="card-title">
+                      Finnished songs
+                    </div>
+                    <table class="table">
+                      <tr v-for="(rs, index) in lastRoundsubmissions">
+                        <th>Song {{ index + 1 }}</th>
+                        <td>
+                          <a class="button"
+                             @click.prevent="downloadWithAuth(
+                            `${apiUrl}${
+                              (rs.fileSubmitted ? rs.fileSubmitted : rs.fileSeeded)
+                                .downloadUrl
+                            }`,
+                            `${event.slug}.Song${index + 1}.${
+                              getExtension((rs.fileSubmitted ? rs.fileSubmitted : rs.fileSeeded).filename)
+                            }`
+                          )">
+                            <span class="icon">
+                              <icon :name="'download'" scale="1"></icon>
+                            </span>
+                            Download
+                         </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  <div
                     :class="{
                       'event-current-roundsubmission': true,
                       'column': true,
-                      'is-full': !event.isAdministrator,
-                      'is-half': event.isAdministrator
+                      'is-full': !event.isAdministrator && event.status != 'Published',
+                      'is-half': event.isAdministrator || event.status == 'Published'
                     }">
                     <div class="card-title">Participation</div>
                     <template v-if="['Completed','Published'].includes(event.status)">
@@ -200,7 +234,9 @@
                                   event.currentRoundsubmission.fileSeeded"
                             @click.prevent="downloadWithAuth(
                               `${apiUrl}${event.currentRoundsubmission.fileSeeded.downloadUrl}`,
-                              event.currentRoundsubmission.fileSeeded.filename
+                              `${event.slug}.R${event.currentRound.index + 1}.${getExtension(
+                                event.currentRoundsubmission.fileSeeded.filename
+                              )}`
                             )"
                             v-tooltip="'Download the file that has been assigned to you for this round'">
                               <span class="icon">
@@ -424,6 +460,23 @@
                             </label>
                           </div>
                           <ApolloMutation
+                              v-if="event.status == 'Planned' && event.initialFile"
+                              :mutation="removeInitialEventFile"
+                              :variables="{ id: event.id }"
+                              :refetchQueries="refetchEvent"
+                              @error="onError"
+                              @done="onDone">
+                            <template slot-scope="{ mutate, loading, error, gqlError }">
+                                <a class="button is-warning"
+                                @click.prevent="removeInitialFile(event, mutate)"
+                                v-tooltip="'If you do not want there to be a initial file'">
+                                  <span class="icon">
+                                    <icon :name="'trash'" scale="1"></icon>
+                                  </span>
+                                  Remove initial file</a>
+                            </template>
+                          </ApolloMutation>
+                          <ApolloMutation
                               :mutation="startEventMutation"
                               :variables="{ id: event.id }"
                               :refetchQueries="refetchEvent"
@@ -445,19 +498,22 @@
                       </div>
                     </div>
                   </div>
+
               </div>
-              <div
-                v-if="event.roundsubmissions.length > 0"
-                class="event-schedule">
-                <div class="card-title">
-                  Schedule
-                  <a
-                    v-if="event.status != 'Published' && (event.isAdministrator || event.isScheduleVisible)"
-                    @click.prevent="toggleRevealSchedule()">
-                    ({{ revealSchedule ? 'Hide full' : 'Show full'}})
-                  </a>
+              <div class="columns">
+                <div
+                  v-if="event.roundsubmissions.length > 0"
+                  class="event-schedule column is-full">
+                  <div class="card-title">
+                    Schedule
+                    <a
+                      v-if="event.status != 'Published' && (event.isAdministrator || event.isScheduleVisible)"
+                      @click.prevent="toggleRevealSchedule()">
+                      ({{ revealSchedule ? 'Hide full' : 'Show full'}})
+                    </a>
+                  </div>
+                  <swap-schedule :schedule="schedule" :colorguide="true" />
                 </div>
-                <swap-schedule :schedule="schedule" :colorguide="true" />
               </div>
               <div class="event-description">
                 <div class="card-title">Description</div>
@@ -497,6 +553,7 @@
   import 'vue-awesome/icons/plus';
   import 'vue-awesome/icons/edit';
   import 'vue-awesome/icons/ban';
+  import 'vue-awesome/icons/trash';
   import axios from 'axios';
   import config from '../../config';
   let uploader = function(urlFormatter, swalParams) {
@@ -550,6 +607,7 @@
       nextRoundMutation: require('../graphql/nextEventRound.gql'),
       startEventMutation: require('../graphql/startEvent.gql'),
       cancelEventMutation: require('../graphql/cancelEvent.gql'),
+      removeInitialEventFile: require('../graphql/removeInitialEventFile.gql'),
       event: null
     }),
     computed: {
@@ -557,6 +615,13 @@
         return this.getSchedule(
           this.event,
           this.event.status == 'Published' || this.revealSchedule);
+      },
+      lastRoundsubmissions: function() {
+        let self = this;
+        if (!self.event) return [];
+        return self.event.roundsubmissions.filter(
+          rs => rs.round.index == (self.event.numRounds - 1)
+        );
       },
       currentUrl: function() {
         return window.location.href.split('?')[0];
@@ -576,6 +641,9 @@
       }
     },
     methods: {
+      getExtension: function(filename) {
+        return filename.split('.').pop();
+      },
       toggleRevealSchedule: function() {
         this.revealSchedule = !this.revealSchedule;
         window.localStorage.setItem(
@@ -624,6 +692,20 @@
               }, 2000);
             });
           }
+        });
+      },
+      removeInitialFile: function(event, mutate) {
+        let self = this;
+        this.$swal({
+          title: `You are about to remove the initial file`,
+          html: `Are you sure?`,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes'
+        }).then((res) => {
+          if (res.value) mutate();
         });
       },
       didParticipate: function(event) {
@@ -1041,6 +1123,14 @@
     margin-top: 15px;
   }
   .event-description {
+    margin-top: 15px;
+  }
+  .event-finnished-songs {
+    .table {
+      margin-top: 5px;
+    }
+  }
+  .event-schedule {
     margin-top: 15px;
   }
   .event-actions {

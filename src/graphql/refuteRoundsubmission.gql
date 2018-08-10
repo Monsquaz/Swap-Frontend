@@ -1,5 +1,5 @@
-mutation RefuteRoundsubmission($id: ID!) {
-  refuteRoundsubmission(id: $id) {
+mutation RefuteRoundsubmission($id: ID!, $reason: String!) {
+  refuteRoundsubmission(id: $id, reason: $reason) {
     code
     message
   }

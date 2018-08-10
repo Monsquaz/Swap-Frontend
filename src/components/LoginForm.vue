@@ -19,6 +19,7 @@
                 <div class="control has-icons-left has-icons-right">
                   <input
                     class="input"
+                    ref="username"
                     type="text"
                     tabindex="1"
                     v-model="username"
@@ -73,6 +74,9 @@
       username: '',
       password: ''
     }),
+    mounted: function() {
+      this.$nextTick(() => this.$refs.username.focus());
+    },
     methods: {
       onDone: function({ data: { loginUser: { authToken } }}) {
         localStorage.setItem('authToken', authToken);

@@ -1,0 +1,6 @@
+mutation RemoveInitialEventFile($id: ID!) {
+  removeInitialEventFile(id: $id) {
+    code
+    message
+  }
+}

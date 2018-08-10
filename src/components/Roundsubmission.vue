@@ -58,21 +58,27 @@
               </tr>
               <tr v-if="roundsubmission.fileSeeded">
                   <th>Seeded file</th><td>
-                    <a @click.prevent="downloadWithAuth(
+                    <a class="button" @click.prevent="downloadWithAuth(
                       `${apiUrl}${roundsubmission.fileSeeded.downloadUrl}`,
-                      roundsubmission.fileSeeded.filename
-                      )">
-                      {{ roundsubmission.fileSeeded.filename }}
+                      `${roundsubmission.event.slug}.Song${roundsubmission.song.index + 1}.Round${roundsubmission.round.index + 1}.${roundsubmission.participant.username}.Seeded.${getExtension(roundsubmission.fileSeeded.filename)}`
+                    )">
+                      <span class="icon">
+                        <icon :name="'download'" scale="1"></icon>
+                      </span>&nbsp;
+                      Download
                     </a>
                 </td>
               </tr>
               <tr v-if="roundsubmission.fileSubmitted">
                   <th>Submitted file</th><td>
-                    <a @click.prevent="downloadWithAuth(
+                    <a class="button" @click.prevent="downloadWithAuth(
                       `${apiUrl}${roundsubmission.fileSubmitted.downloadUrl}`,
-                      roundsubmission.fileSubmitted.filename
+                      `${roundsubmission.event.slug}.Song${roundsubmission.song.index + 1}.Round${roundsubmission.round.index + 1}.${roundsubmission.participant.username}.Submitted.${getExtension(roundsubmission.fileSubmitted.filename)}`
                       )">
-                      {{ roundsubmission.fileSubmitted.filename }}
+                      <span class="icon">
+                        <icon :name="'download'" scale="1"></icon>
+                      </span>&nbsp;
+                      Download
                     </a>
                 </td>
               </tr>
@@ -102,10 +108,6 @@
                   <ApolloMutation
                       v-if="roundsubmission.status == 'Submitted'"
                       :mutation="require('../graphql/refuteRoundsubmission.gql')"
-                      :variables="{
-                        id: roundsubmission.id,
-                        userId: roundsubmission.participant.id
-                      }"
                       :refetchQueries="refetch"
                       @error="onError">
                     <template slot-scope="{ mutate, loading, error, gqlError }">
@@ -183,6 +185,7 @@
 </template>
 
 <script>
+  import 'vue-awesome/icons/download';
   module.exports = {
     name: 'roundsubmission',
     props: {},
@@ -199,6 +202,9 @@
       }
     },
     methods: {
+      getExtension: function(filename) {
+        return filename.split('.').pop();
+      },
       onEventChanged: function(query) {
         return function(_, { subscriptionData }) {
           let { data } = subscriptionData;
@@ -272,18 +278,29 @@
         })
       },
       refuteSubmission: function(roundsubmission, mutate) {
+        let self = this;
         this.$swal({
           title: `You are about to refute this roundsubmission.`,
           html: `You are about to refute the submission for <b>${roundsubmission.participant.username}</b><br />.
           This means that he/she will have to submit again or skip the round.
-          Are you absolutely sure?`,
+          Are you absolutely sure? Enter a reason. It will be sent to ${roundsubmission.participant.username}`,
           type: 'warning',
+          input: 'textarea',
+          inputPlaceholder: 'Type your reason here',
           showCancelButton: true,
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
           confirmButtonText: 'Yes'
         }).then((res) => {
-          if (res.value) mutate();
+          if (res.value) {
+            console.warn('kuk', res.value);
+            mutate({
+              variables: {
+                id: self.roundsubmission.id,
+                reason: res.value
+              }
+            });
+          }
         })
       },
       refetch: function() {

@@ -40,7 +40,7 @@
             {
               href: 'http://www.monsquaz.org',
               title: 'The animation',
-              description: 'html5 recreation of the original monsquaz animation'
+              description: 'html5 recreation of the original monsquaz animation (NSFW)'
             },
             {
               href: 'http://www.monsquaz.com',
@@ -91,6 +91,11 @@
               href: 'http://compo.thasauce.net',
               title: 'ThaSauce',
               description: 'Various musical compos. Including the weekly OHC.'
+            },
+            {
+              href: 'http://battleofthebits.org/',
+              title: 'Battle of the bits',
+              description: 'Chiptune compos'
             }
           ]
         },
@@ -137,7 +142,7 @@
     }
   .link {
     font-weight: bold;
-    font-size: 1.5em;
+    font-size: 1.1em;
     border-bottom: 1px dotted black;
   }
   .link-description {}

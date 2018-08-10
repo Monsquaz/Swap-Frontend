@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const CssNano = require('cssnano');
 const WebpackBundleSizeAnalyzerPlugin = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin;
-
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
   entry: [
     './src/index.js'
@@ -17,10 +17,26 @@ module.exports = {
       },
       {
         test: /\.vue$/,
-        loader: 'vue-loader',
-        options: {
-          extractCSS: true
+        loader: [
+        {
+            loader: 'vue-loader',
+            options: {
+                loaders: {
+                    scss: [
+                        'vue-style-loader',
+                        MiniCssExtractPlugin.loader,
+                        'css-loader?sourceMap',
+                        'sass-loader?sourceMap'
+                    ],
+                    css: [
+                        'vue-style-loader',
+                        MiniCssExtractPlugin.loader,
+                        'css-loader?sourceMap'
+                    ]
+                }
+            }
         }
+    ]
       },
       {
         test: /\.(js|jsx)$/,
@@ -28,25 +44,11 @@ module.exports = {
         use: ['babel-loader']
       },
       {
-        test: /\.css$/,
+        test: /\.(css|scss|sass)$/,
         use: [
-          'vue-style-loader',
+          MiniCssExtractPlugin.loader,
           'css-loader',
           'sass-loader'
-        ]
-      },
-      {
-        test: /\.(scss|sass)$/,
-        use: [
-          'vue-style-loader',
-          'css-loader',
-          {
-            loader: 'sass-loader',
-            /*
-            options: {
-              indentedSyntax: true
-            }*/
-          }
         ]
       }
     ]
@@ -60,20 +62,24 @@ module.exports = {
     path: __dirname + '/dist',
     publicPath: '/',
     filename: 'bundle.js'
-  },/*
+  },
   optimization: {
     splitChunks: {
       cacheGroups: {
-        node_vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          chunks: 'all',
-          priority: 1
-        }
+        vendor: {
+          test: /node_modules/,
+          chunks: 'initial',
+          name: 'vendor',
+          enforce: true
+        },
       }
     }
-  },*/
+  },
   plugins: [
     new VueLoaderPlugin(),
+    new MiniCssExtractPlugin({
+      filename: `[name].css`
+    }),
     new WebpackBundleSizeAnalyzerPlugin('../../bundle-size-report.txt')
   ],
   devServer: {

@@ -22,7 +22,7 @@
        </table>
      </div>
      <div class="colorguide" v-if="colorguide">
-       <div class="color" v-for="[ status, tooltip ] in colors">
+       <div class="color" v-for="[ status, tooltip ] in presentColors">
          <div v-tooltip="tooltip" :class="status.toLowerCase()">{{ status }}</div>
        </div>
      </div>
@@ -45,6 +45,19 @@
         ['Skipped','Nobody contributed']
       ]
     }),
+    computed: {
+      presentColors: function(){
+        let self = this;
+        let ret = self.colors.reduce((ack, e) => {
+          let c = e[0].toLowerCase();
+          if (self.schedule.find(
+            r => r.find(rs => rs.class === c)
+          )) { ack.push(e); }
+          return ack;
+        }, []);
+        return ret;
+      }
+    }
   };
 </script>
 
