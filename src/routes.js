@@ -1,6 +1,8 @@
 module.exports = [
   { path: '/',
     component: () => import(/* webpackChunkName: "start" */ './components/Start.vue') },
+  { path: '/index.php',
+    component: () => import(/* webpackChunkName: "start" */ './components/Start.vue') },
   { path: '/events',
     component: () => import(/* webpackChunkName: "events-page" */ './components/EventsPage.vue') },
   { path: '/events/:slug',

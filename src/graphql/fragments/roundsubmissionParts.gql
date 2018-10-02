@@ -1,22 +1,14 @@
 fragment roundsubmissionParts on Roundsubmission {
   id
   status
-  round {
-    id
-    index
-  }
+  round { id index }
   participant {
-    ...userParts
+    username
   },
   originalParticipant {
-    ...userParts
+    username
   }
-  song { id }
-  fileSeeded {
-    id
-    filename
-    downloadUrl
-  }
+  song { id, index }
   fileSubmitted {
     id
     filename

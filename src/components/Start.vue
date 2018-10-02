@@ -4,7 +4,7 @@
       title="Welcome to Monsquaz Swap!"
       subtitle="A collaborative project management system that can yield fantastic, unexpected results"></hero>
     <div class="columns is-centered">
-      <section class="content-box column is-two-thirds">
+      <section class="content-box column is-three-quarters">
         <div>
           <h3>Relay writing generalized and improved</h3>
           <p>We came up with a fun idea in 2011. That a few people would come together and start composing one song each,

@@ -131,7 +131,7 @@
       title: () => 'List of events',
       meta: [{
         name: 'description',
-        content: 'List of events.'
+        content: 'Find an event to join or a previous event to revisit.'
       }]
     }),
     apollo: {

@@ -20,7 +20,7 @@
           :title="`Roundsubmission: ${others(roundsubmission)}`"
           :subtitle="`Part of ${roundsubmission.event.name}`"></hero>
         <div class="columns is-centered">
-          <section class="content-box column is-two-thirds">
+          <section class="content-box column is-three-quarters">
             <table class="table">
               <tr><th>Id</th><td>{{ roundsubmission.id }}</td></tr>
               <tr><th>Event</th>
@@ -123,33 +123,14 @@
               </div>
             </div>
             <div
-              class="columns"
+              class="columns is-desktop"
               v-if="roundsubmission.event.isPublic &&
                     ['Completed','Published'].includes(roundsubmission.event.status) ||
                     roundsubmission.event.isAdministrator ||
                     roundsubmission.event.isScheduleVisible">
-              <div class="column is-half">
+              <div class="column is-third">
                 <div class="section-title">
-                  Other roundsubmissions for the same song
-                </div>
-                <paginator
-                  :resource="'roundsubmissions'"
-                  :query="roundsubmissionsQuery"
-                  :show-headers="false"
-                  :headers="[
-                    { field: others, title: 'Id' },
-                  ]"
-                  :linker="linker"
-                  :sort="'songId'"
-                  :descending="false"
-                  :filters="{
-                    songId: roundsubmission.song.id,
-                    NOT: { id: roundsubmission.id }
-                  }" />
-              </div>
-              <div class="column is-half">
-                <div class="section-title">
-                  Other roundsubmissions during same round
+                  Other submissions for song {{ roundsubmission.song.index + 1 }}
                 </div>
                 <paginator
                   :resource="'roundsubmissions'"
@@ -160,6 +141,45 @@
                   ]"
                   :linker="linker"
                   :sort="'roundId'"
+                  :descending="false"
+                  :filters="{
+                    songId: roundsubmission.song.id,
+                    NOT: { id: roundsubmission.id }
+                  }" />
+              </div>
+              <div class="column is-third">
+                <div class="section-title">
+                  Other submissions by {{ roundsubmission.participant.username }}
+                </div>
+                <paginator
+                  :resource="'roundsubmissions'"
+                  :query="roundsubmissionsQuery"
+                  :show-headers="false"
+                  :headers="[
+                    { field: others, title: 'Id' },
+                  ]"
+                  :linker="linker"
+                  :sort="'roundId'"
+                  :descending="false"
+                  :filters="{
+                    participantId: roundsubmission.participant.id,
+                    eventId: roundsubmission.event.id,
+                    NOT: { id: roundsubmission.id }
+                  }" />
+              </div>
+              <div class="column is-third">
+                <div class="section-title">
+                  Other submissions during round {{ roundsubmission.round.index + 1 }}
+                </div>
+                <paginator
+                  :resource="'roundsubmissions'"
+                  :query="roundsubmissionsQuery"
+                  :show-headers="false"
+                  :headers="[
+                    { field: others, title: 'Id' },
+                  ]"
+                  :linker="linker"
+                  :sort="'songId'"
                   :descending="false"
                   :filters="{
                     roundId: roundsubmission.round.id,
@@ -293,7 +313,6 @@
           confirmButtonText: 'Yes'
         }).then((res) => {
           if (res.value) {
-            console.warn('kuk', res.value);
             mutate({
               variables: {
                 id: self.roundsubmission.id,
@@ -310,22 +329,34 @@
         this.error = err;
       },
       others: function(roundsubmission) {
+        if (!roundsubmission) return '';
         return `Song ${roundsubmission.song.index + 1} Round ${roundsubmission.round.index + 1} (${roundsubmission.participant.username})`
       },
       linker: function(roundsubmission) {
         return `/roundsubmissions/${roundsubmission.id}`
       },
       onResult: function({ data }) {
+        if (data.roundsubmissions.length == 0) {
+          this.$router.push({ path: '/not-found' });
+          return;
+        }
         this.roundsubmission = data.roundsubmissions[0];
       }
     },
-    metaInfo: () => ({
-      title: () => 'Roundsubmission', // TODO: "RAMPKORV's submission on Round 4 of Monsquaz Swap 9"
-      meta: [{
-        name: 'description',
-        content: 'Roundsubmission details' // TODO
-      }]
-    })
+    metaInfo: function() {
+      if (this.roundsubmission) {
+        return {
+          title: `${this.others(this.roundsubmission)} | ${this.roundsubmission.event.name}`,
+          meta: [{
+            name: 'description',
+            content: `A submission by ${this.roundsubmission.participant.username} for ${this.roundsubmission.event.name}`
+          }]
+        };
+      }
+      return {
+        title: ''
+      };
+    }
   };
 </script>
 

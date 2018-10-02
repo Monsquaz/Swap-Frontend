@@ -33,17 +33,25 @@ h1 {
   z-index: 1;
   margin-top: 15px;
   width: calc(100% - 30px);
+  &:not(.is-full) {
+    max-width: 1500px !important;
+  }
   padding: 25px;
+  overflow: auto;
+}
+.hero {
+  margin-top: 25px;
 }
 @media screen and (max-width: 767px) {
   .content-box {
-    width: calc(100% - 30px);
-    margin-left: 15px;
+    width: calc(100% - 10px);
+    margin-left: 5px;
+  }
+  .hero {
+    margin-top: 15px;
   }
 }
-.hero {
-  margin-top: 40px;
-}
+
 h3 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -78,4 +86,9 @@ p {
 }
 .tooltip {
   pointer-events: none !important;
+}
+
+.columns {
+  margin-left: 0px;
+  margin-right: 0px;
 }

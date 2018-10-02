@@ -3,7 +3,7 @@
     <hero
       title="User registration"
       subtitle="So you can actually use the service" />
-      <div class="columns is-mobile is-centered">
+      <div class="columns is-centered">
         <section class="content-box column is-two-thirds">
           <div v-if="wasRegistered">
             <h3>User registered successfully</h3>

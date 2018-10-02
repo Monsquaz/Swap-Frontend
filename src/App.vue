@@ -15,16 +15,16 @@
       <div class="navbar-menu" :class="{'is-active': isActive}">
         <div class="navbar-start">
           <div class="navbar-item">
-            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/">Start</router-link>
+            <router-link @click.native="isActive = false" class="navbar-link" to="/">Start</router-link>
           </div>
           <div class="navbar-item">
-            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/events">Events</router-link>
+            <router-link @click.native="isActive = false" class="navbar-link" to="/events">Events</router-link>
           </div>
           <div class="navbar-item">
-            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/users">Users</router-link>
+            <router-link @click.native="isActive = false" class="navbar-link" to="/users">Users</router-link>
           </div>
           <div class="navbar-item">
-            <router-link @click.native="isActive = !isActive" class="navbar-link" to="/related-links">Related links</router-link>
+            <router-link @click.native="isActive = false" class="navbar-link" to="/related-links">Related links</router-link>
           </div>
         </div>
         <ApolloQuery :query="currentUserQuery" @result="onResult">
@@ -46,7 +46,7 @@
       </div>
     </nav>
     <router-view id="view"></router-view>
-    <green-arrows></green-arrows>
+    <green-arrows v-if="arrows"></green-arrows>
     <monsquaz-footer></monsquaz-footer>
     <cookie-law
       theme="blood-orange--rounded"
@@ -60,6 +60,7 @@ import CookieLaw from 'vue-cookie-law'
 module.exports = {
   name: 'app',
   data: () => ({
+    arrows: true,
     isActive: false,
     currentUserQuery: require('./graphql/currentUser.gql')
   }),
@@ -67,7 +68,7 @@ module.exports = {
   methods: {
     onResult: function({ data }){
       let { currentUser } = data;
-      if (currentUser) Notification.requestPermission();  
+      if (currentUser) Notification.requestPermission();
     },
     logout: function(query) {
       localStorage.removeItem('authToken');
@@ -76,11 +77,7 @@ module.exports = {
     }
   },
   metaInfo: {
-    titleTemplate: '%s | Monsquaz Swap',
-    meta: [
-      {'http-equiv': 'Content-Type', content: 'text/html; charset=utf-8'},
-      {name: 'viewport', content: 'width=device-width, initial-scale=1'}
-    ]
+    titleTemplate: '%s | Monsquaz Swap'
   },
   components: { CookieLaw }
 };
@@ -88,6 +85,7 @@ module.exports = {
 
 <style lang="sass">
   @import 'scss/all';
+
   #view {
     min-height: calc(100vh - 361px);
   }
@@ -95,6 +93,7 @@ module.exports = {
     padding: 7px;
   }
   .app {
+    position: relative;
     min-height: 100vh;
     background: linear-gradient(
       to bottom,
@@ -144,5 +143,10 @@ module.exports = {
     color: #ffffff;
     opacity: 0.95;
     /* position: absolute; bottom: 0; */
+  }
+  @media screen and (max-width: 767px) {
+    .footer {
+      margin-top: 20px;
+    }
   }
 </style>

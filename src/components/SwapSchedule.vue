@@ -8,7 +8,10 @@
          </tr>
          <tr v-for="(round, index) in schedule">
            <th>Round {{ index + 1 }}</th>
-           <td v-for="submission in round">
+           <td
+             :class="{rs: 'id' in submission}"
+             @click="goToRs(submission)"
+             v-for="submission in round">
              <div :class="submission.class">
                <router-link v-if="'id' in submission" :to="`/roundsubmissions/${submission.id}`">
                  &nbsp;{{ submission.title }}
@@ -41,10 +44,17 @@
         ['FillinAquired','A participant has been selected to fill in for a skipping participant'],
         ['Submitted','A file has been submitted. This means that the event will be completed'],
         ['Refuted','The administrator has refuted the submission'],
-        ['Completed','The event was successfully completed'],
-        ['Skipped','Nobody contributed']
+        ['Completed','The submission was successfully completed'],
+        ['Skipped','No contribution was made']
       ]
     }),
+    methods: {
+      goToRs: function(submission) {
+        if (submission && 'id' in submission) {
+          this.$router.push({ path: `/roundsubmissions/${submission.id}` });
+        }
+      }
+    },
     computed: {
       presentColors: function(){
         let self = this;
@@ -70,6 +80,9 @@
   .refuted          { color: #ffffff; a { color: #ffffff; } background-color: #990066; }
   .completed        { color: #ffffff; a { color: #ffffff; } background-color: #339933; }
   .skipped          { color: #ffffff; a { color: #ffffff; } background-color: #993333; }
+  .rs {
+    cursor: pointer;
+  }
   .table-wrapper {
     overflow-x: auto;
   }
@@ -100,7 +113,7 @@
   }
   @media screen and (max-width: 850px) {
     .table {
-      td, th { padding: 5px; }
+      td, th { padding: 1px; }
     }
   }
   @media screen and (max-width: 500px) {

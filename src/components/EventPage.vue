@@ -21,7 +21,7 @@
             <section :class="{
               'content-box': true,
               'column': true,
-              'is-two-thirds': !expanded,
+              'is-three-quarters': !expanded,
               'is-full': expanded
               }">
               <div
@@ -506,11 +506,19 @@
                   class="event-schedule column is-full">
                   <div class="card-title">
                     Schedule
-                    <a
-                      v-if="event.status != 'Published' && (event.isAdministrator || event.isScheduleVisible)"
-                      @click.prevent="toggleRevealSchedule()">
-                      ({{ revealSchedule ? 'Hide full' : 'Show full'}})
-                    </a>
+                    <template
+                      v-if="event.status != 'Published' && (event.isAdministrator || event.isScheduleVisible)">(
+                      <template v-if="!revealSchedule">
+                        <a
+                          @click.prevent="toggleRevealRound()">
+                          {{ revealRound ? 'Hide round' : 'Show round'}}
+                        </a> |
+                      </template>
+                      <a
+                        @click.prevent="toggleRevealSchedule()">
+                        {{ revealSchedule ? 'Hide full' : 'Show full'}}
+                      </a>
+                    )</template>
                   </div>
                   <swap-schedule :schedule="schedule" :colorguide="true" />
                 </div>
@@ -554,6 +562,7 @@
   import 'vue-awesome/icons/edit';
   import 'vue-awesome/icons/ban';
   import 'vue-awesome/icons/trash';
+  import { ellipsis } from '../util';
   import axios from 'axios';
   import config from '../../config';
   let uploader = function(urlFormatter, swalParams) {
@@ -592,6 +601,7 @@
     props: {},
     data: () => ({
       revealSchedule: null,
+      revealRound: null,
       eventsQuery: require('../graphql/events.gql'),
       eventChangedSubscription: require('../graphql/eventChanged.gql'),
       usersQuery: require('../graphql/users.gql'),
@@ -614,6 +624,7 @@
       schedule: function() {
         return this.getSchedule(
           this.event,
+          this.revealRound,
           this.event.status == 'Published' || this.revealSchedule);
       },
       lastRoundsubmissions: function() {
@@ -646,9 +657,17 @@
       },
       toggleRevealSchedule: function() {
         this.revealSchedule = !this.revealSchedule;
+        this.revealRound = false;
         window.localStorage.setItem(
           `revealEvent${this.event.id}Schedule`,
           this.revealSchedule
+        );
+      },
+      toggleRevealRound: function() {
+        this.revealRound = !this.revealRound;
+        window.localStorage.setItem(
+          `revealEvent${this.event.id}Round`,
+          this.revealRound
         );
       },
       onEventChanged: function(query) {
@@ -745,7 +764,9 @@
               rs => rs.participant.id == self.currentUser.id && ![
                 'Submitted', 'Completed', 'Skipped'
               ].includes(rs.status)
-            ).reduce((ack, rs) => {
+            )
+            .sort((a, b) => a.round.index - b.round.index)
+            .reduce((ack, rs) => {
               return ack.then(_ => self.$apollo.mutate({
                   mutation: self.skipRoundsubmissionMutation,
                   variables: {
@@ -883,11 +904,15 @@
         this.message = data[Object.keys(data)[0]].message;
       },
       onResult: function({ data }) {
+        if (data.events.length == 0) {
+          this.$router.push({ path: '/not-found' });
+          return;
+        }
         this.event = data.events[0];
         if (this.revealSchedule === null) {
-          this.revealSchedule = !!window.localStorage.getItem(
+          this.revealSchedule = window.localStorage.getItem(
             `revealEvent${this.event.id}Schedule`
-          );
+          ) == 'true';
         }
       },
       refetchEvent: function() {
@@ -937,7 +962,6 @@
             }).then(res2 => {
               if (res2.data.users.length == 1) {
                 let user = res2.data.users[0];
-                console.warn('user', user);
                 mutate({
                   variables: {
                     eventId: event.id,
@@ -1051,40 +1075,51 @@
           .filter(rs => rs.round.index == event.currentRound.index)
           .find(rs => ['Started','Refuted'].includes(rs.status));
       },
-      getSchedule: function(event, revealSchedule) { // TODO: Make computed or watched so it doesn't fire 4 times
+      getSchedule: function(event, revealRound, revealSchedule) {
         let self = this;
         let square = new Array(event.numRounds).fill(null).map(() => new Array(event.numRounds).fill({
           title: '?'
         }));
-        let songs = {};
-        let songIdx = 0;
         let roundsubmissions = event.roundsubmissions;
+        let songIdx = 0;
+        let songs = roundsubmissions.reduce((ack, rs) => {
+          if (!(rs.song.id in ack)) ack[rs.song.id] = songIdx++;
+          return ack;
+        }, {});
         if (!revealSchedule) {
           roundsubmissions = roundsubmissions.filter(
-            rs => {
-              return rs.participant.id == self.currentUser.id;
-            }
+            rs => rs.participant.id == self.currentUser.id || (revealRound && rs.round.index == event.currentRound.index)
           );
         }
         let t = roundsubmissions.reduce((ack, rs) => {
-          if (!(rs.song.id in songs)) songs[rs.song.id] = songIdx++;
+          let participant = rs.participant;
+          if (rs.status == 'Skipped' && rs.participant.id != rs.originalParticipant.id) {
+            participant = rs.originalParticipant;
+          }
           ack[rs.round.index][songs[rs.song.id]] = {
             id: rs.id,
             class: rs.status.toLowerCase(),
-            title: rs.participant.username
+            title: participant.username
           };
           return ack;
         }, square);
         return t;
       }
     },
-    metaInfo: () => ({
-      title: () => 'Event', // TODO: Event:Monsquaz Swap 9
-      meta: [{
-        name: 'description',
-        content: 'Event details' // TODO: Event description
-      }]
-    })
+    metaInfo: function() {
+      if (this.event) {
+        return {
+          title: this.event.name,
+          meta: [{
+            name: 'description',
+            content: ellipsis(this.event.description)
+          }]
+        };
+      }
+      return {
+        title: ''
+      };
+    }
   };
 </script>
 

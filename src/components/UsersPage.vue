@@ -1,17 +1,10 @@
 <template>
   <div>
-    <div class="columns is-mobile is-centered">
-    <section class="hero content-box column is-two-thirds">
-      <div class="hero-body">
-        <div class="container">
-          <h1 class="title">Users</h1>
-          <h2 class="subtitle">Members of the site</h2>
-        </div>
-      </div>
-    </section>
-  </div>
-    <div class="columns is-mobile is-centered">
-      <section class="content-box column is-two-thirds">
+    <hero
+      title="Users"
+      subtitle="Members of the site"></hero>
+    <div class="columns is-centered">
+      <section class="content-box column is-three-quarters">
         <paginator
         :resource="'users'"
         :query="query"

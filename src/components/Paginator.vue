@@ -31,13 +31,18 @@
              </tr>
              <tr v-else @click="goto(linker(item))" class="single-item" v-for="item in data[resource]">
                <td v-for="header in headers">
-                 <div v-if="typeof header.field === 'function'"
-                 v-html="header.field(item)" />
+                 <template v-if="typeof header.field === 'function'">
+                   <router-link :to="linker(item)" v-html="header.field(item)" />
+                 </template>
                  <template v-else-if="typeof item[header.field] == 'boolean'">
-                   {{ !!item[header.field] ? 'Yes' : 'No' }}
+                   <router-link :to="linker(item)">
+                     {{ !!item[header.field] ? 'Yes' : 'No' }}
+                   </router-link>
                  </template>
                  <template v-else>
-                   {{ item[header.field] }}
+                   <router-link :to="linker(item)">
+                     {{ item[header.field] }}
+                   </router-link>
                  </template>
                </td>
              </tr>
@@ -115,6 +120,9 @@
 </script>
 
 <style lang="sass" scoped>
+a {
+  color: #000000;
+}
 .paginator {
   overflow: auto;
 }

@@ -13,7 +13,7 @@
         <hero
           :title="`User: ${data.users[0].username}`"></hero>
         <div class="columns is-centered">
-          <section class="content-box column is-two-thirds">
+          <section class="content-box column is-three-quarters">
             <table class="table">
               <tr><th>Id</th><td>{{ data.users[0].id }}</td></tr>
               <tr><th>Username</th><td>{{ data.users[0].username }}</td></tr>
@@ -95,16 +95,27 @@
         this.error = err;
       },
       onResult: function({ data }) {
+        if (data.users.length == 0) {
+          this.$router.push({ path: '/not-found' });
+          return;
+        }
         this.user = data.users[0];
       }
     },
-    metaInfo: () => ({
-      title: () => 'User',
-      meta: [{
-        name: 'description',
-        content: 'User details'
-      }]
-    })
+    metaInfo: function() {
+      if (this.user) {
+        return {
+          title: `User: ${this.user.username}`,
+          meta: [{
+            name: 'description',
+            content: `Details and participation history for ${this.user.username}`
+          }]
+        };
+      }
+      return {
+        title: 'User'
+      };
+    }
   };
 </script>
 

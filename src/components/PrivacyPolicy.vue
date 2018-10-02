@@ -1,17 +1,10 @@
 <template>
   <div>
-    <div class="columns is-mobile is-centered">
-    <section class="hero content-box column is-two-thirds">
-      <div class="hero-body">
-        <div class="container">
-          <h1 class="title">Privacy Policy</h1>
-          <h2 class="subtitle">Because there needs to be one</h2>
-        </div>
-      </div>
-    </section>
-  </div>
-    <div class="columns is-mobile is-centered">
-      <section class="content-box column is-two-thirds">
+    <hero
+      title="Privacy Policy"
+      subtitle="Because there needs to be one"></hero>
+    <div class="columns is-centered">
+      <section class="content-box column is-three-quarters">
         <div>
           <div class="content">
             <h3>Registration</h3>
@@ -24,6 +17,7 @@
               <li>hashed password</li>
               <li>random activation code</li>
             </ul>
+            All fields are mandatory to fill in, but you may enter faked names if you desire.
             <h3>Authentication</h3>
             <p>During authentication, username and password will be transmitted over
               SSL and checked against the username and password hash we have stored</p>

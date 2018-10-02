@@ -4,7 +4,7 @@
       title="User activation"
       subtitle="Final registration step" />
     <div class="columns is-centered">
-      <section class="login-form content-box column is-two-thirds">
+      <section class="login-form content-box column is-three-quarters">
         <div
           :class="{
             notification: true,

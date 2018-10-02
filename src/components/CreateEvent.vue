@@ -3,8 +3,8 @@
     <hero
       title="Create event"
       subtitle="Make it good"></hero>
-    <div class="columns is-mobile is-centered">
-      <section class="content-box column is-two-thirds">
+    <div class="columns is-centered">
+      <section class="content-box column is-three-quarters">
         <div class="notification is-info" v-if="message">
           {{ message }}
         </div>

@@ -1,17 +1,10 @@
 <template>
   <div>
-    <div class="columns is-mobile is-centered">
-    <section class="hero content-box column is-two-thirds">
-      <div class="hero-body">
-        <div class="container">
-          <h1 class="title">Disclaimer</h1>
-          <h2 class="subtitle">Because there needs to be one</h2>
-        </div>
-      </div>
-    </section>
-  </div>
-    <div class="columns is-mobile is-centered">
-      <section class="content-box column is-two-thirds">
+    <hero
+      title="Disclaimer"
+      subtitle="Because there needs to be one"></hero>
+    <div class="columns is-centered">
+      <section class="content-box column is-three-quarters">
         <div>
           <h3>High ambitions - no guarantees</h3>
           <div class="content">

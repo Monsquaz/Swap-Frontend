@@ -1,5 +1,6 @@
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const webpack = require('webpack');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const CssNano = require('cssnano');
 const WebpackBundleSizeAnalyzerPlugin = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin;
@@ -64,6 +65,18 @@ module.exports = {
     filename: 'bundle.js'
   },
   optimization: {
+    minimizer: [
+      new UglifyJsPlugin({
+        uglifyOptions: {
+          mangle: true,
+          compress: {
+            drop_console: true,
+            passes: 5,
+            toplevel: true, // Maybe dangerous
+          }
+        },
+      }),
+    ],
     splitChunks: {
       cacheGroups: {
         vendor: {
@@ -79,6 +92,15 @@ module.exports = {
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: `[name].css`
+    }),
+    new OptimizeCssAssetsPlugin({
+      cssProcessor: CssNano,
+      cssProcessorOptions: {
+        discardComments: {
+          removeAll: true
+        },
+        discardUnused: true
+      }
     }),
     new WebpackBundleSizeAnalyzerPlugin('../../bundle-size-report.txt')
   ],

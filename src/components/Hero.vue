@@ -1,6 +1,6 @@
  <template>
   <div class="columns is-centered">
-    <section class="hero content-box column is-two-thirds">
+    <section class="hero content-box column is-three-quarters">
       <div class="hero-body">
         <div class="container">
           <h1 class="title">{{ title }}</h1>
