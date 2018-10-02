@@ -32,7 +32,7 @@
             Some of the more interesting pieces will emerge as a result of experienced composers working on inexperiences composers' work.
           </p>
           <div style="text-align: center; margin-top: 15px;">
-            <iframe class="youtube" width="560" height="315" src="https://www.youtube.com/embed/e-PYALxcdrM?start=32" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <iframe src="https://player.twitch.tv/?autoplay=false&video=v310986511" frameborder="0" allowfullscreen="true" scrolling="no" height="315" width="560"></iframe>
             <div class="sub-label">Video from our latest annual event</div>
           </div>
           <h3>Not just for music!</h3>
